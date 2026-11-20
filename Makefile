@@ -13,7 +13,7 @@ LUCI_TITLE:=NuxLab Cyberpunk Neon Theme & Config (luci-app-nuxlab)
 LUCI_DEPENDS:=+luci-base +wget-ssl +ca-bundle +jsonfilter +ucode-mod-math +flock +coreutils +coreutils-timeout
 # Translation package basename: luci-i18n-nuxlab-*
 LUCI_BASENAME:=nuxlab
-PKG_VERSION:=3.1.6
+PKG_VERSION:=3.1.7
 PKG_RELEASE:=20261121
 PKG_LICENSE:=Apache-2.0 MIT
 

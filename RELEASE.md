@@ -1,5 +1,10 @@
 # Update log for master branch
 
+## v3.1.7 [ 2026.11.21 ]
+
+- Fix RPC service permissions so theme configuration and update checks can read available storage.
+- Set the preview to light mode by default and refine the light/dark gradients.
+
 ## v3.1.6 [ 2026.11.21 ]
 
 ### Package format / 安装包格式

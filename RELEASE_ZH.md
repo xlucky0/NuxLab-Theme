@@ -1,5 +1,10 @@
 # Master 分支的更新日志
 
+## v3.1.7 [ 2026.11.21 ]
+
+- 修复 RPC 服务权限，确保主题配置和更新检查可以读取可用存储空间。
+- 预览默认使用浅色模式，并优化明暗主题渐变。
+
 ## v3.1.6 [ 2026.11.21 ]
 
 - GitHub Release: https://github.com/xlucky0/NuxLab-Theme/releases/tag/v3.1.6

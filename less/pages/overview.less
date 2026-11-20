@@ -67,6 +67,48 @@
     border-end-start-radius: var(--radius-card);
     border-end-end-radius: var(--radius-card);
     overflow: hidden;
+
+    .cbi-progressbar {
+        isolation: isolate;
+
+        > div {
+            z-index: 1;
+            overflow: hidden;
+            background: linear-gradient(90deg, var(--primary), var(--chart-series-2));
+            box-shadow: 0 0 10px var(--accent-shadow-color);
+
+            @media (prefers-reduced-motion: no-preference) {
+                transition: width 520ms var(--motion-ease-out);
+            }
+
+            &::after {
+                position: absolute;
+                inset: 0 auto 0 -45%;
+                width: 40%;
+                background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .72), transparent);
+                content: "";
+                pointer-events: none;
+
+                @media (prefers-reduced-motion: no-preference) {
+                    animation: nuxlab-overview-meter-scan 3.6s ease-in-out infinite;
+                }
+            }
+        }
+    }
+}
+
+@keyframes nuxlab-overview-meter-scan {
+    0%, 28% {
+        opacity: 0;
+        transform: translateX(0);
+    }
+    38% {
+        opacity: .8;
+    }
+    72%, 100% {
+        opacity: 0;
+        transform: translateX(360%);
+    }
 }
 
 [data-page="admin-status"],

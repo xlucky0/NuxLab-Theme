@@ -6787,19 +6787,57 @@ pre.command-output {
   --dashboard-warn: var(--warning);
 }
 #view > .Dashboard .dashboard-kpi-row > .cbi-section {
+  position: relative;
+  isolation: isolate;
   min-width: min(100%, 16rem);
   padding: var(--field-gap) var(--section-inset);
   gap: var(--field-gap);
+  border-color: var(--border-muted);
+  background: linear-gradient(145deg, var(--surface-color), var(--surface-muted));
+  box-shadow: var(--section-shadow);
+}
+#view > .Dashboard .dashboard-kpi-row > .cbi-section::before {
+  position: absolute;
+  inset: 0 auto auto var(--section-inset);
+  width: 3rem;
+  height: 2px;
+  border-radius: var(--radius-pill);
+  background: linear-gradient(90deg, var(--primary), var(--chart-series-2));
+  box-shadow: 0 0 12px var(--info);
+  content: "";
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: no-preference) {
+  #view > .Dashboard .dashboard-kpi-row > .cbi-section {
+    transition: transform var(--motion-duration-fast) var(--motion-ease-out), border-color var(--motion-duration-fast) var(--motion-ease-out), box-shadow var(--motion-duration-fast) var(--motion-ease-out);
+  }
+  #view > .Dashboard .dashboard-kpi-row > .cbi-section::before {
+    transition: width var(--motion-duration-base) var(--motion-ease-out);
+  }
+}
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  #view > .Dashboard .dashboard-kpi-row > .cbi-section:hover {
+    transform: translateY(-2px);
+    border-color: var(--border-strong);
+  }
+  #view > .Dashboard .dashboard-kpi-row > .cbi-section:hover::before {
+    width: calc(100% - 2 * var(--section-inset));
+  }
 }
 #view > .Dashboard .dashboard-kpi-text {
   overflow-wrap: anywhere;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 0 16px var(--accent-shadow-color);
 }
 #view > .Dashboard .dashboard-charts > .cbi-section {
   min-width: min(100%, 18rem);
   padding-block-end: var(--field-gap);
+  border-color: var(--border-muted);
+  background: linear-gradient(145deg, var(--surface-color), var(--surface-muted));
 }
 #view > .Dashboard .dashboard-charts > .cbi-section > h3:first-child {
   padding: var(--field-gap) var(--section-inset);
+  letter-spacing: 0.025em;
 }
 #view > .Dashboard .dashboard-charts > .cbi-section > :not(h3:first-child) {
   margin-inline: var(--section-inset);
@@ -6817,6 +6855,11 @@ pre.command-output {
 }
 #view > .Dashboard .dashboard-bars {
   direction: ltr;
+}
+@media (prefers-reduced-motion: no-preference) {
+  #view > .Dashboard .dashboard-bars > div {
+    transition: height 420ms var(--motion-ease-out), background-color var(--motion-duration-fast) var(--motion-ease-out);
+  }
 }
 #view > .Dashboard .dashboard-net-grid {
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 16.25rem), 1fr));
@@ -6983,6 +7026,48 @@ pre.command-output {
   border-end-start-radius: var(--radius-card);
   border-end-end-radius: var(--radius-card);
   overflow: hidden;
+}
+.cbi-section.fade-in > .cbi-title + div > .table:last-child:has(.cbi-progressbar) .cbi-progressbar {
+  isolation: isolate;
+}
+.cbi-section.fade-in > .cbi-title + div > .table:last-child:has(.cbi-progressbar) .cbi-progressbar > div {
+  z-index: 1;
+  overflow: hidden;
+  background: linear-gradient(90deg, var(--primary), var(--chart-series-2));
+  box-shadow: 0 0 10px var(--accent-shadow-color);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .cbi-section.fade-in > .cbi-title + div > .table:last-child:has(.cbi-progressbar) .cbi-progressbar > div {
+    transition: width 520ms var(--motion-ease-out);
+  }
+}
+.cbi-section.fade-in > .cbi-title + div > .table:last-child:has(.cbi-progressbar) .cbi-progressbar > div::after {
+  position: absolute;
+  inset: 0 auto 0 -45%;
+  width: 40%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.72), transparent);
+  content: "";
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .cbi-section.fade-in > .cbi-title + div > .table:last-child:has(.cbi-progressbar) .cbi-progressbar > div::after {
+    animation: nuxlab-overview-meter-scan 3.6s ease-in-out infinite;
+  }
+}
+@keyframes nuxlab-overview-meter-scan {
+  0%,
+  28% {
+    opacity: 0;
+    transform: translateX(0);
+  }
+  38% {
+    opacity: 0.8;
+  }
+  72%,
+  100% {
+    opacity: 0;
+    transform: translateX(360%);
+  }
 }
 [data-page="admin-status"] #view > div:first-child,
 [data-page="admin-status-overview"] #view > div:first-child {

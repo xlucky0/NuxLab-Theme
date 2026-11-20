@@ -367,19 +367,6 @@ jobs:
           fail_on_unmatched_files: true
           files: release-assets/*
 
-  update-feeds:
-    name: Publish stable update feeds
-    needs: [release, metadata]
-    if: needs.metadata.outputs.prerelease == 'false' && vars.NUXLAB_UPDATES_ENABLED == 'true'
-    permissions:
-      contents: write
-      pages: write
-      id-token: write
-    uses: ./.github/workflows/publish_updates.yml
-    with:
-      tag: ${{ github.ref_name }}
-    secrets: inherit
-
   sync-docs:
     name: Sync release docs
     runs-on: ubuntu-24.04

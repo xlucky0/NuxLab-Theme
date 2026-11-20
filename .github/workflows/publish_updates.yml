@@ -33,18 +33,34 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           REQUESTED_TAG: ${{ inputs.tag }}
         run: |
-          gh api "repos/${GITHUB_REPOSITORY}/releases/latest" > official-release.json
+          gh api "repos/${GITHUB_REPOSITORY}/releases?per_page=100" > releases.json
           python3 - <<'PY'
           import json, os, sys
           from pathlib import Path
           sys.path.insert(0, '.github/scripts')
           from release_metadata import resolve
 
-          release = json.loads(Path('official-release.json').read_text())
-          tag = release['tag_name']
-          if resolve(tag)['prerelease'] != 'false' or release['draft'] or release['prerelease']:
-              raise SystemExit('The latest release must be a published stable version.')
+          releases = json.loads(Path('releases.json').read_text())
+          stable_releases = [
+              release for release in releases
+              if not release['draft'] and not release['prerelease']
+          ]
           requested = os.environ['REQUESTED_TAG']
+          if not stable_releases:
+              if requested:
+                  raise SystemExit(f'No published stable release is available for requested tag {requested}.')
+              with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
+                  output.write('publish=false\n')
+              print('No published stable release; skip the update feed.')
+              raise SystemExit(0)
+
+          release = max(
+              stable_releases,
+              key=lambda item: item['published_at'] or item['created_at'],
+          )
+          tag = release['tag_name']
+          if resolve(tag)['prerelease'] != 'false':
+              raise SystemExit('The latest release must be a published stable version.')
           publish = not requested or requested == tag
           with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
               output.write(f'publish={str(publish).lower()}\ntag={tag}\n')

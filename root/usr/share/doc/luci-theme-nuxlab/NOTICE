@@ -1,0 +1,11 @@
+Third-party attribution
+
+Portions of the templates in ucode/template/themes/nuxlab/ are adapted from:
+
+- luci-theme-argon (Copyright 2020 Jerrykuku)
+- luci-theme-material
+- luci-theme-bootstrap
+- MUI
+
+These attribution notices are retained here in place of the repeated template
+header comments. Applicable third-party licenses continue to apply.

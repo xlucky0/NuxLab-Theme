@@ -113,6 +113,16 @@
 
 [data-page="admin-status"],
 [data-page="admin-status-overview"] {
+    #view .cbi-section.fade-in:has(.cbi-progressbar) {
+        background: linear-gradient(
+            145deg,
+            color-mix(in srgb, var(--surface-color) 86%, transparent),
+            color-mix(in srgb, var(--surface-muted) 76%, transparent)
+        );
+        -webkit-backdrop-filter: blur(12px);
+        backdrop-filter: blur(12px);
+    }
+
   #view > div:first-child {
     gap: 0 !important;
   }

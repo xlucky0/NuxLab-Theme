@@ -1,8 +1,8 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=luci-app-nuxlab
-PKG_VERSION:=3.1.4
-PKG_RELEASE:=20261113
+PKG_VERSION:=3.1.5
+PKG_RELEASE:=20261121
 PKG_LICENSE:=Apache-2.0
 
 LUCI_TITLE:=NuxLab configuration compatibility package

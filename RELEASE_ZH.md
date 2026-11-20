@@ -1,5 +1,10 @@
 # Master 分支的更新日志
 
+## v3.1.5 [ 2026.11.21 ]
+
+- GitHub Release: https://github.com/xlucky0/NuxLab-Theme/releases/tag/v3.1.5
+- 详细更新内容请以 Release 页面为准。
+
 ## v3.1.4 [ 2026.11.13 ]
 
 - 修复提示条遮挡下拉菜单、表格下拉选项显示不完整的问题（#740、#741）。

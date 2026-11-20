@@ -95,6 +95,8 @@
   --table-border: thin solid var(--border-subtle);
   --overlay-focus: #1e293b;
   --header-bg: var(--primary);
+  --header-gradient: linear-gradient(112deg, var(--primary) 0%, #4338ca 100%);
+  --workspace-glow: radial-gradient(ellipse at 92% 0%, rgba(79, 70, 229, .08), transparent 40%), radial-gradient(ellipse at 5% 90%, rgba(6, 182, 212, .035), transparent 35%);
   --menu-color: #475569;
   --main-menu-color: #1e293b;
   --sidebar-brand-color: var(--primary);
@@ -260,6 +262,8 @@
   --table-border: 0;
   --overlay-focus: #94a3b8;
   --header-bg: #090e1f;
+  --header-gradient: linear-gradient(112deg, #090e1f 0%, #101a33 64%, #12334a 100%);
+  --workspace-glow: radial-gradient(ellipse at 92% 0%, rgba(0, 229, 255, .07), transparent 40%), radial-gradient(ellipse at 5% 90%, rgba(217, 70, 239, .05), transparent 35%);
   --menu-color: #cbd5e1;
   --main-menu-color: #e2e8f0;
   --sidebar-brand-color: #00e5ff;
@@ -401,6 +405,8 @@
     --table-border: 0;
     --overlay-focus: #94a3b8;
     --header-bg: #090e1f;
+    --header-gradient: linear-gradient(112deg, #090e1f 0%, #101a33 64%, #12334a 100%);
+    --workspace-glow: radial-gradient(ellipse at 92% 0%, rgba(0, 229, 255, .07), transparent 40%), radial-gradient(ellipse at 5% 90%, rgba(217, 70, 239, .05), transparent 35%);
     --menu-color: #cbd5e1;
     --main-menu-color: #e2e8f0;
     --sidebar-brand-color: #00e5ff;
@@ -1720,6 +1726,7 @@ select[multiple] {
 }
 .main-right {
   background-color: var(--main-bg);
+  background-image: var(--workspace-glow);
   height: 100%;
   flex: 1 1 0;
   min-width: 0;
@@ -1787,6 +1794,7 @@ header {
 }
 header.bg-primary {
   background-color: var(--header-bg);
+  background-image: var(--header-gradient);
 }
 header::after {
   content: "";
@@ -1794,6 +1802,7 @@ header::after {
   width: 100%;
   height: 2rem;
   background-color: var(--header-bg);
+  background-image: var(--header-gradient);
 }
 header .fill {
   padding: 0.8rem 0;

@@ -35,7 +35,7 @@ import {
 
 export function App() {
   const [settings, setSettings] = useState<NuxLabSettings>({
-    mode: 'dark',
+    mode: 'light',
     lightPrimary: '#4f46e5',
     darkNeon: '#00e5ff',
     darkSecondary: '#d946ef',

@@ -117,6 +117,12 @@ json_cleanup() { :; }
         self.assertEqual(set(acl['read']['ubus']['luci.nuxlab']), {'avail'})
         self.assertEqual(set(acl['write']['ubus']['luci.nuxlab']), {'remove', 'rename'})
 
+    def test_rpc_services_are_executable(self):
+        for service in (ROOT / 'root/usr/libexec/rpcd').iterdir():
+            with self.subTest(service=service.name):
+                self.assertTrue(service.is_file())
+                self.assertTrue(service.stat().st_mode & stat.S_IXUSR)
+
 
 if __name__ == "__main__":
     unittest.main()

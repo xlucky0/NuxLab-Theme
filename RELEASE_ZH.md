@@ -133,7 +133,7 @@ v3.0.0 及更早版本用户需先手动安装一次 v3.1.0，之后可使用在
 
 ## v2.2.5
 
-- 全新的设置 app.你可以设置 nuxlab 主题的登录页面的模糊和透明度，并管理背景图片与视频。[建议使用 Chrome][点击下载](https://github.com/jerrykuku/luci-app-nuxlab/releases/download/v0.8-beta/luci-app-nuxlab_0.8-beta_all.ipk)
+- 全新的设置 app.你可以设置 nuxlab 主题的登录页面的模糊和透明度，并管理背景图片与视频。建议使用 Chrome。
 - 当编译固件时，将自动设置为默认主题。
 - 修改文件结构，以适应 luci-app-nuxlab，旧的开启暗色模式方法将不再适用，请搭配 luci-app-nuxlab 使用。
 - 适配 Koolshare lede 2.3.6。

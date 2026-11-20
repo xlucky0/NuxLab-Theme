@@ -1,9 +1,8 @@
-name: Build and upload frontend
+name: Build frontend preview
 
 on:
   push:
     branches: [main]
-    tags: ['v*']
   workflow_dispatch:
 
 permissions:

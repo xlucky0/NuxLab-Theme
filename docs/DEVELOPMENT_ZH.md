@@ -8,7 +8,7 @@
 
 ```sh
 cd package
-git clone https://github.com/xlucky0/luci-theme-nuxlab.git
+git clone https://github.com/xlucky0/NuxLab-Theme.git luci-theme-nuxlab
 cd ..
 make menuconfig
 # LuCI → Themes → luci-theme-nuxlab
@@ -17,13 +17,13 @@ make package/luci-theme-nuxlab/compile V=s
 
 主题设置已内置。仅在需要构建旧插件迁移包时，在 LuCI 应用中额外选择嵌套的 `compat/luci-app-nuxlab` 包。语言包继续使用 `luci-i18n-nuxlab-*` 名称。
 
-固件或 GitHub Actions 构建脚本应移除旧版独立 `luci-app-nuxlab` 仓库的克隆步骤，并取消旧插件选项。旧版 `1.0-r20261008` 插件会重复安装主题已内置的配置、RPC、设置页及图标，导致 APK 报 `trying to overwrite ... owned by luci-theme-nuxlab`。新固件只需选择主题；需要保留旧包名时，使用本仓库的空迁移包，整个构建树中只保留一份该包定义。已有构建缓存时，更新包定义后重新运行 `make defconfig`，并清理旧插件的编译产物再编译。
+固件或 GitHub Actions 构建脚本应移除旧版独立 `luci-app-nuxlab` 仓库的克隆步骤，并取消旧插件选项。旧版 `1.0-r20261008` 插件会重复安装主题已内置的配置、RPC、设置页及图标，导致 APK 报 `trying to overwrite ... owned by luci-theme-nuxlab`。新固件只需选择主题；需要保留旧包名时，使用本仓库的空迁移包，整个构建树中只保留一份该包定义。迁移包不依赖主题，因此可先单独安装，移交旧文件后再安装主题。已有构建缓存时，更新包定义后重新运行 `make defconfig`，并清理旧插件的编译产物再编译。
 
 旧构建日志中的 `does not support ucode template precompilation` 是 LuCI 的跳过提示，不是上述文件冲突的原因。本包关闭模板预编译并保留 `.ut` 源码，避免 SDK 与目标设备的 ucode 字节码格式不一致；无需关闭其他 LuCI 包的预编译。
 
-发行 CI 使用 OpenWrt 23.05.5 SDK 构建 IPK、25.12.5 SDK 构建 APK v3。Ucode 模板保留源码，避免绑定某个运行时的字节码格式。
+发行 CI 使用 OpenWrt 25.12.5 SDK 构建 APK v3，并在每个版本标签对应的 GitHub Release 上传主题、迁移及翻译 APK。不再发布 OPKG/IPK 包。Ucode 模板保留源码，避免绑定某个运行时的字节码格式。
 
-语言包通过 `PKG_PO_VERSION` 跟随主题发行版本，APK 包含 `-r<修订号>`。IPK 语言包固定使用 `v` 前缀（如 `v3.0.1`），使已安装的 v3.0.0 `unknown` 语言包可以直接正常升级；后续版本须保留该前缀。发布前会逐个读取语言包内部元数据，版本不符时阻止上传和发布。
+语言包通过 `PKG_PO_VERSION` 跟随主题发行版本，APK 包含 `-r<修订号>`。发布前会逐个读取语言 APK 内部元数据，版本不符时阻止上传和发布。
 
 ## 目录
 
@@ -106,7 +106,7 @@ lessc less/cascade.less htdocs/luci-static/nuxlab/css/cascade.css
    | --- | --- |
    | `NUXLAB_UPDATE_PRIMARY_URL` | 完整主源地址，例如 `https://<实际项目地址>/updates/stable.json` |
    | `NUXLAB_UPDATES_ENABLED` | `true`，启用正式发布后的自动同步 |
-   | `NUXLAB_UPDATE_FALLBACK_URL` | 可选；默认 `https://xlucky0.github.io/luci-theme-nuxlab/updates/stable.json`。备用源绑定自有域名时设置。 |
+   | `NUXLAB_UPDATE_FALLBACK_URL` | 可选；默认 `https://xlucky0.github.io/NuxLab-Theme/updates/stable.json`。备用源绑定自有域名时设置。 |
 
 5. 选择 CF 的触发方式。默认保留生产分支自动部署，发布工作流推送 `updates` 后 CF 自动构建，GitHub 无需 CF Secret。若要使用 Deploy Hook，在 CF 的 **Settings → Builds → Add deploy hook** 创建绑定 `updates` 分支的 Hook，将完整 URL 保存为 GitHub 仓库 Actions **Secret** `CF_PAGES_DEPLOY_HOOK`，并关闭 CF 的 **Enable automatic production branch deployments**，避免同一次发布构建两次。
 6. 读取两端 `/updates/stable.json`，核对内容完全相同；在目标路由器网络验证主源读取、主源失败后的备用读取，以及真实包下载。配置生效后构建的新安装包会带上主源地址；设置仓库变量不会改变已经安装在设备上的主题。
@@ -117,7 +117,7 @@ lessc less/cascade.less htdocs/luci-static/nuxlab/css/cascade.css
 
 重新运行 **Publish update feeds** 可再次发布 GitHub Pages；清单未变化时不重复创建分支提交。若配置了 Hook，即使分支内容未变化也会重新触发 CF，便于重试失败的部署；仅使用 Git 自动部署时，需要在 CF 中重试构建或新增清单提交。两端发布任务互相独立，一端失败不会阻止另一端发布。
 
-清单字段包括 `schema`、`repository`、`tag`、`published_at`、`notes`，以及 `apk`/`ipk` 文件名和对应的 `_sha256`/`_size`。由最终发布包计算元数据，不从 master 的 Makefile 推断最新版。两种格式均须完整且属于同一版本；客户端拒绝损坏清单，并保留上一次成功记录。请求只在手动检查时发起，成功缓存五分钟，双源均失败后冷却一分钟。
+清单字段包括 `schema`、`repository`、`tag`、`published_at`、`notes`，以及 APK 文件名和对应的 `_sha256`/`_size`。由最终发布包计算元数据，不从默认分支的 Makefile 推断最新版。APK 必须与标签版本匹配；客户端拒绝损坏清单，并保留上一次成功记录。请求只在手动检查时发起，成功缓存五分钟，双源均失败后冷却一分钟。
 
 Schema 1 还支持可选的 `translations` 对象，以 `zh-cn` 等语言包后缀为键，每项包含双格式对应的六个包字段。文件名须与主题发行版本匹配，单个语言包不超过 1 MiB，最多接受 32 种语言。现有翻译缺少可校验信息时不开放自动安装。所有所需包先完成下载和校验，再调用包管理器；空间检查按总大小计算，安装完成后核对各包版本。主题的 preinst 与 UCI 初始化会保留旧更新器首次升级时的内嵌翻译，并保留独立语言包已提供的文件。
 

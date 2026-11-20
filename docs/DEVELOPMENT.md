@@ -8,7 +8,7 @@ From an OpenWrt build tree:
 
 ```sh
 cd package
-git clone https://github.com/xlucky0/luci-theme-nuxlab.git
+git clone https://github.com/xlucky0/NuxLab-Theme.git luci-theme-nuxlab
 cd ..
 make menuconfig
 # LuCI → Themes → luci-theme-nuxlab
@@ -17,13 +17,13 @@ make package/luci-theme-nuxlab/compile V=s
 
 Theme settings are included. Select the nested `compat/luci-app-nuxlab` package under LuCI applications only when building the migration package. Existing translation names remain `luci-i18n-nuxlab-*`.
 
-Firmware and GitHub Actions build scripts should stop cloning the old standalone `luci-app-nuxlab` repository and deselect that plugin. The old `1.0-r20261008` plugin duplicates the configuration, RPC services, settings page and icons now owned by the theme, causing APK's `trying to overwrite ... owned by luci-theme-nuxlab` errors. New firmware only needs the theme. If the old package name is required, use this repository's empty migration package and keep exactly one definition of that package in the build tree. After updating an existing build tree, run `make defconfig` and clean the old plugin's build outputs before rebuilding.
+Firmware and GitHub Actions build scripts should stop cloning the old standalone `luci-app-nuxlab` repository and deselect that plugin. The old `1.0-r20261008` plugin duplicates the configuration, RPC services, settings page and icons now owned by the theme, causing APK's `trying to overwrite ... owned by luci-theme-nuxlab` errors. New firmware only needs the theme. If the old package name is required, use this repository's empty migration package and keep exactly one definition of that package in the build tree. The migration package has no theme dependency so it can be installed first to hand off the old files before installing the theme. After updating an existing build tree, run `make defconfig` and clean the old plugin's build outputs before rebuilding.
 
 The older `does not support ucode template precompilation` log line is LuCI's skip message, separate from the file conflict. This package disables precompilation and ships `.ut` source to avoid SDK/target ucode bytecode incompatibilities; other LuCI packages can retain precompilation.
 
-Release CI builds IPK with the OpenWrt 23.05.5 SDK and APK v3 with the 25.12.5 SDK. Ucode templates ship as source to avoid tying packages to one runtime's bytecode format.
+Release CI builds APK v3 packages with the OpenWrt 25.12.5 SDK and uploads the theme, migration and translation APKs to the GitHub Release for each version tag. OPKG/IPK packages are not published. Ucode templates ship as source to avoid tying packages to one runtime's bytecode format.
 
-Translations use `PKG_PO_VERSION` to follow the theme release, including `-r<revision>` for APK. IPK translations retain a `v` prefix (for example, `v3.0.1`) so ordinary installation upgrades the broken v3.0.0 `unknown` version. Keep that prefix in future IPK releases. CI reads each translation's internal package metadata and blocks artifact upload and publication if the version is wrong.
+Translations use `PKG_PO_VERSION` to follow the theme release, including `-r<revision>` for APK. CI reads each translation APK's internal package metadata and blocks artifact upload and publication if the version is wrong.
 
 ## Source map
 
@@ -106,7 +106,7 @@ Initial maintainer setup:
    | --- | --- |
    | `NUXLAB_UPDATE_PRIMARY_URL` | Complete URL, e.g. `https://<assigned-hostname>/updates/stable.json` |
    | `NUXLAB_UPDATES_ENABLED` | `true` to synchronize after stable releases |
-   | `NUXLAB_UPDATE_FALLBACK_URL` | Optional; defaults to `https://xlucky0.github.io/luci-theme-nuxlab/updates/stable.json`. Override for a custom fallback domain. |
+   | `NUXLAB_UPDATE_FALLBACK_URL` | Optional; defaults to `https://xlucky0.github.io/NuxLab-Theme/updates/stable.json`. Override for a custom fallback domain. |
 
 5. Choose how CF is triggered. By default, keep automatic production branch deployments enabled: pushing `updates` triggers CF without a CF secret in GitHub. For Deploy Hooks, create a hook bound to `updates` under CF **Settings → Builds → Add deploy hook**. Save the complete URL as the GitHub repository Actions **Secret** `CF_PAGES_DEPLOY_HOOK`, then disable **Enable automatic production branch deployments** to avoid building each publication twice.
 6. Compare `/updates/stable.json` on both hosts byte for byte. Verify primary access, fallback access and actual package downloads from the target router's network. New release packages embed the configured source URLs; changing repository variables does not change themes already installed on devices.
@@ -117,7 +117,7 @@ Only successful stable publications update the feed. Previews are excluded, and 
 
 Run **Publish update feeds** again to republish GitHub Pages. Identical artifacts do not create another branch commit. With a Hook configured, reruns still trigger CF when the branch is unchanged, allowing failed deployments to be retried. With Git auto-deployment only, retry the build in CF or publish changed feed content. Both publication jobs are independent, so either side can publish if the other fails.
 
-The manifest contains `schema`, `repository`, `tag`, `published_at`, `notes`, and the `apk`/`ipk` filenames with `_sha256`/`_size` fields. Metadata comes from the published package bytes rather than master's Makefile. Both formats must be complete and match the tag. Malformed feeds trigger fallback and never overwrite the previous successful cache. Checks are manual, with a five-minute success cache, a one-minute failure cooldown and a lock that coalesces concurrent requests.
+The manifest contains `schema`, `repository`, `tag`, `published_at`, `notes`, and the APK filename with `_sha256`/`_size` fields. Metadata comes from the published package bytes rather than the default branch's Makefile. The package must match the release tag. Malformed feeds trigger fallback and never overwrite the previous successful cache. Checks are manual, with a five-minute success cache, a one-minute failure cooldown and a lock that coalesces concurrent requests.
 
 Schema 1 also supports an optional `translations` object keyed by language package suffix, such as `zh-cn`. Each entry has the same six package fields for both formats. Names must match the theme's release, each translation is limited to 1 MiB, and at most 32 languages are accepted. Existing translations without verified metadata disable automatic installation. All required packages are downloaded and verified before the package manager runs; storage checks use their combined size, and completion requires the expected installed versions. The theme's pre-install hook and UCI initialization preserve bundled catalogs across a first upgrade made by an older updater, without replacing catalogs already supplied by independent language packages.
 

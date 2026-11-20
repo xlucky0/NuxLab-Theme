@@ -460,6 +460,9 @@ msgid "Reload page"
 msgstr "重新加载页面"
 
 #: htdocs/luci-static/resources/nuxlab/updates.js
+msgid "This release uses APK v3 and cannot be installed on this opkg-based firmware."
+msgstr "此发行版使用 APK v3，无法安装到当前基于 opkg 的固件。"
+
 msgid "Automatic installation is unavailable. Download the package to update manually."
 msgstr "暂时无法自动安装。请下载安装包手动更新。"
 

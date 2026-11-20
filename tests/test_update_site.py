@@ -30,10 +30,9 @@ class UpdateSiteTests(unittest.TestCase):
     def release_for(self, tag):
         metadata = SITE.resolve(tag)
         release = {'tag_name': tag, 'draft': False, 'prerelease': False,
-                   'html_url': f'https://github.com/xlucky0/luci-theme-nuxlab/releases/tag/{tag}',
+                   'html_url': f'https://github.com/xlucky0/NuxLab-Theme/releases/tag/{tag}',
                    'published_at': '2026-10-21T01:00:00Z', 'body': '## 更新\n- 修复布局。', 'assets': []}
-        for name in [f'luci-theme-nuxlab_{metadata["ipk_version"]}_all.ipk',
-                     f'luci-theme-nuxlab-{metadata["apk_version"]}-r{metadata["package_release"]}.apk']:
+        for name in [f'luci-theme-nuxlab-{metadata["apk_version"]}-r{metadata["package_release"]}.apk']:
             content = ('package bytes for ' + name).encode()
             (self.packages / name).write_bytes(content)
             release['assets'].append({'name': name, 'size': len(content),
@@ -41,12 +40,11 @@ class UpdateSiteTests(unittest.TestCase):
         return release
 
     def generate(self, release=None):
-        return SITE.generate(release or self.release, self.packages, 'xlucky0/luci-theme-nuxlab', self.output)
+        return SITE.generate(release or self.release, self.packages, 'xlucky0/NuxLab-Theme', self.output)
 
     def add_language(self, language='zh-cn'):
         metadata = SITE.resolve(self.release['tag_name'])
-        names = [f'luci-i18n-nuxlab-{language}_{metadata["ipk_i18n_version"]}_all.ipk',
-                 f'luci-i18n-nuxlab-{language}-{metadata["apk_i18n_version"]}.apk']
+        names = [f'luci-i18n-nuxlab-{language}-{metadata["apk_i18n_version"]}.apk']
         for name in names:
             data = ('translation bytes for ' + name).encode()
             (self.packages / name).write_bytes(data)
@@ -54,28 +52,28 @@ class UpdateSiteTests(unittest.TestCase):
                                            'digest': 'sha256:' + hashlib.sha256(data).hexdigest()})
         return names
 
-    def test_language_packages_are_versioned_and_verified_in_both_formats(self):
+    def test_language_packages_are_versioned_and_verified_as_apk_v3(self):
         names = self.add_language()
         self.add_language('de')
         manifest = self.generate()
         self.assertEqual(set(manifest['translations']), {'zh-cn', 'de'})
-        for kind, name in zip(['ipk', 'apk'], names):
-            entry = manifest['translations']['zh-cn']
-            self.assertEqual(entry[kind], name)
-            self.assertEqual(entry[kind + '_sha256'], hashlib.sha256((self.packages / name).read_bytes()).hexdigest())
-            self.assertEqual(entry[kind + '_size'], (self.packages / name).stat().st_size)
+        entry = manifest['translations']['zh-cn']
+        self.assertEqual(entry['apk'], names[0])
+        self.assertEqual(entry['apk_sha256'], hashlib.sha256((self.packages / names[0]).read_bytes()).hexdigest())
+        self.assertEqual(entry['apk_size'], (self.packages / names[0]).stat().st_size)
+        self.assertNotIn('ipk', entry)
 
     def test_missing_corrupt_or_wrong_version_language_packages_block_publication(self):
-        for problem in ['missing-format', 'corrupt', 'wrong-version', 'duplicate']:
+        for problem in ['missing-file', 'corrupt', 'wrong-version', 'duplicate']:
             with self.subTest(problem=problem):
                 self.release = self.release_for('v3.1.0')
                 names = self.add_language()
-                if problem == 'missing-format':
-                    self.release['assets'].pop()
+                if problem == 'missing-file':
+                    (self.packages / names[0]).unlink()
                 elif problem == 'corrupt':
                     (self.packages / names[0]).write_bytes(b'corrupt translation')
                 elif problem == 'wrong-version':
-                    self.release['assets'][-1]['name'] = names[1].replace('3.1.0', '3.0.0')
+                    self.release['assets'][-1]['name'] = names[0].replace('3.1.0', '3.0.0')
                 else:
                     self.release['assets'].append(self.release['assets'][-1])
                 with self.assertRaises(ValueError):
@@ -90,10 +88,10 @@ class UpdateSiteTests(unittest.TestCase):
             self.assertEqual(manifest['schema'], 1)
             self.assertEqual(manifest['tag'], tag)
             self.assertEqual(manifest['notes'], release['body'])
-            for kind in ['apk', 'ipk']:
-                content = (self.packages / manifest[kind]).read_bytes()
-                self.assertEqual(manifest[kind + '_size'], len(content))
-                self.assertEqual(manifest[kind + '_sha256'], hashlib.sha256(content).hexdigest())
+            content = (self.packages / manifest['apk']).read_bytes()
+            self.assertEqual(manifest['apk_size'], len(content))
+            self.assertEqual(manifest['apk_sha256'], hashlib.sha256(content).hexdigest())
+            self.assertNotIn('ipk', manifest)
             self.assertNotIn('checked_at', manifest)
             self.assertNotIn('url', manifest)
 
@@ -140,7 +138,7 @@ class UpdateSiteTests(unittest.TestCase):
 
     def test_sources_support_an_unconfigured_primary_and_distinct_https_hosts(self):
         output = self.directory / 'sources.json'
-        fallback = 'https://xlucky0.github.io/luci-theme-nuxlab/updates/stable.json'
+        fallback = 'https://xlucky0.github.io/NuxLab-Theme/updates/stable.json'
         for primary in ['', 'https://owned-project.pages.dev/updates/stable.json', fallback]:
             SITE.configure_sources(primary, fallback, output)
             sources = json.loads(output.read_text())

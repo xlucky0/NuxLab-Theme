@@ -95,6 +95,17 @@ test('unmatched packages and unknown managers cannot produce an up-to-date claim
 	}
 });
 
+test('APK-only releases identify OPKG firmware as incompatible and offer no APK download', async () => {
+	const state = checked('3.0.0-1', '3.0.0-r2', 'opkg');
+	delete state.ipk;
+	state.apk = 'luci-theme-nuxlab-3.0.0-r2.apk';
+	const f = fixture({ initial: state });
+	await f.render();
+	assert.match(f.status(), /cannot be installed on this opkg-based firmware/);
+	assert.equal(f.find('a', 'Download package').hidden, true);
+	assert.equal(f.installButton().hidden, true);
+});
+
 test('repeated clicks share a check and restore the button after transport or backend failure', async () => {
 	for (const patch of [{ checkError: true }, { check: { result: 1 } }, { check: { result: 0, tag: 'not-a-version' } }]) {
 		let finish;

@@ -374,7 +374,7 @@ Download the theme, configuration plugin, and required language packages in the 
 
 ## v2.2.5
 
-- New config app for NuxLab theme. You can set the blur and transparency of the login page of NuxLab theme, and manage the background pictures and videos.[Chrome is recommended] [Download](https://github.com/jerrykuku/luci-app-nuxlab/releases/download/v0.8-beta/luci-app-nuxlab_0.8-beta_all.ipk)
+- New config app for NuxLab theme. You can set the blur and transparency of the login page of NuxLab theme, and manage the background pictures and videos. Chrome is recommended.
 - Automatically set as the default theme when compiling.
 - Modify the file structure to adapt to luci-app-nuxlab. The old method of turning on dark mode is no longer applicable, please use it with luci-app-nuxlab.
 - Adapt to Koolshare lede 2.3.6。

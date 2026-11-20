@@ -5,7 +5,7 @@
 readonly state_dir='/var/run/nuxlab-update'
 readonly cache_file='/var/run/nuxlab-update/release.json'
 readonly sources_file='/usr/share/nuxlab/update-sources.json'
-readonly repository='xlucky0/luci-theme-nuxlab'
+readonly repository='xlucky0/NuxLab-Theme'
 readonly i18n_dir='/usr/lib/lua/luci/i18n'
 
 wget_bin=/usr/libexec/wget-ssl
@@ -60,7 +60,7 @@ valid_source() {
 
 load_sources() {
 	primary_url=''
-	fallback_url='https://xlucky0.github.io/luci-theme-nuxlab/updates/stable.json'
+	fallback_url='https://xlucky0.github.io/NuxLab-Theme/updates/stable.json'
 	if [ -f "$sources_file" ] && [ ! -L "$sources_file" ] &&
 		[ "$(wc -c < "$sources_file")" -le 4096 ] && json_load_file "$sources_file"; then
 		json_get_var configured_primary primary
@@ -93,16 +93,18 @@ translation_languages() (
 		[ "$count" -le 32 ] && valid_language "$language" || exit 1
 		json_get_type kind "$language_key"
 		[ "$kind" = object ] && json_select "$language_key" || exit 1
-		for kind in ipk apk; do
-			json_get_var file "$kind"
-			json_get_var checksum "${kind}_sha256"
-			json_get_var bytes "${kind}_size"
-			case "$kind" in
-			ipk) expected="luci-i18n-nuxlab-${language}_v${ipk#luci-theme-nuxlab_}" ;;
-			apk) expected="luci-i18n-nuxlab-${language}-${apk#luci-theme-nuxlab-}" ;;
-			esac
+		json_get_var file apk
+		json_get_var checksum apk_sha256
+		json_get_var bytes apk_size
+		expected="luci-i18n-nuxlab-${language}-${apk#luci-theme-nuxlab-}"
+		valid_translation_asset "$file" "$checksum" "$bytes" "$expected" || exit 1
+		json_get_var file ipk
+		if [ -n "$file" ]; then
+			json_get_var checksum ipk_sha256
+			json_get_var bytes ipk_size
+			expected="luci-i18n-nuxlab-${language}_v${ipk#luci-theme-nuxlab_}"
 			valid_translation_asset "$file" "$checksum" "$bytes" "$expected" || exit 1
-		done
+		fi
 		json_select ..
 		printf '%s\n' "$language"
 	done
@@ -114,11 +116,15 @@ read_manifest_fields() {
 	json_get_var manifest_repository repository
 	json_get_var tag tag
 	[ "$schema" = 1 ] && [ "$manifest_repository" = "$repository" ] && valid_tag "$tag" || return 1
-	# Both formats must be complete. Never combine fields from different sources.
+	# APK v3 is the published format. Validate legacy IPK fields only when an
+	# older cached or primary feed still includes them.
 	package_manager=apk
 	select_package || return 1
-	package_manager=opkg
-	select_package || return 1
+	json_get_var ipk ipk
+	if [ -n "$ipk" ]; then
+		package_manager=opkg
+		select_package || return 1
+	fi
 	for field in ipk apk ipk_sha256 apk_sha256 ipk_size apk_size published_at notes; do
 		json_get_var "$field" "$field"
 	done
@@ -142,12 +148,14 @@ normalize_manifest() {
 	json_add_string tag "$tag"
 	json_add_string published_at "$published_at"
 	json_add_string notes "$notes"
-	json_add_string ipk "$ipk"
 	json_add_string apk "$apk"
-	json_add_string ipk_sha256 "$ipk_sha256"
 	json_add_string apk_sha256 "$apk_sha256"
-	json_add_int ipk_size "$ipk_size"
 	json_add_int apk_size "$apk_size"
+	if [ -n "$ipk" ]; then
+		json_add_string ipk "$ipk"
+		json_add_string ipk_sha256 "$ipk_sha256"
+		json_add_int ipk_size "$ipk_size"
+	fi
 	if [ -n "$languages" ]; then
 		json_add_object translations
 		for language in $languages; do
@@ -161,12 +169,14 @@ normalize_manifest() {
 			json_select ..
 			json_set_namespace "$manifest_namespace"
 			json_add_object "$language"
-			json_add_string ipk "$translation_ipk"
 			json_add_string apk "$translation_apk"
-			json_add_string ipk_sha256 "$translation_ipk_sha256"
 			json_add_string apk_sha256 "$translation_apk_sha256"
-			json_add_int ipk_size "$translation_ipk_size"
 			json_add_int apk_size "$translation_apk_size"
+			if [ -n "$translation_ipk" ]; then
+				json_add_string ipk "$translation_ipk"
+				json_add_string ipk_sha256 "$translation_ipk_sha256"
+				json_add_int ipk_size "$translation_ipk_size"
+			fi
 			json_close_object
 		done
 		json_close_object
@@ -211,7 +221,9 @@ check_updates() {
 			-O "$work/manifest.json" "$source_url") 2>/dev/null &&
 			[ "$(wc -c < "$work/manifest.json")" -le 1048576 ] && normalize_manifest "$work/manifest.json"; then
 			json_dump > "$work/cache.json"
-			[ ! -L "$cache_file" ] && mv -f "$work/cache.json" "$cache_file" 2>/dev/null || :
+			if chmod 600 "$work/cache.json" && [ ! -L "$cache_file" ]; then
+				mv -f "$work/cache.json" "$cache_file" 2>/dev/null || :
+			fi
 			rm -f "$state_dir/retry_at"
 			respond 0
 			return
@@ -413,7 +425,9 @@ write_status() {
 	json_add_string phase "$1"
 	json_add_string error "${2:-}"
 	json_add_string version "$target_version"
-	json_dump > "$state_dir/status.$$" && mv -f "$state_dir/status.$$" "$state_dir/status.json"
+	json_dump > "$state_dir/status.$$" &&
+		chmod 600 "$state_dir/status.$$" &&
+		mv -f "$state_dir/status.$$" "$state_dir/status.json"
 }
 
 run_upgrade() {
@@ -443,7 +457,7 @@ run_upgrade() {
 	write_status downloading
 	set --
 	while read -r file checksum bytes; do
-		url="https://github.com/xlucky0/luci-theme-nuxlab/releases/download/$tag/$file"
+		url="https://github.com/xlucky0/NuxLab-Theme/releases/download/$tag/$file"
 		(ulimit -f 16384; timeout -k 2 90 "$wget_bin" -T 20 -q -U 'luci-theme-nuxlab' \
 			-O "$work/$file" "$url") 2>/dev/null || { write_status failed network; return; }
 		set -- "$@" "$work/$file"
@@ -503,7 +517,11 @@ start_upgrade() {
 		fail 1
 		return
 	fi
-	: > "$state_dir/log"
+	if ! : > "$state_dir/log" || ! chmod 600 "$state_dir/log"; then
+		rm -rf "$work"
+		fail 1
+		return
+	fi
 	write_status starting
 	# FD 9 is inherited by the worker, keeping the lock until all installation
 	# work finishes. Detach every stdio stream so rpcd can reply immediately.

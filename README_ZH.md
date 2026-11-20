@@ -1,16 +1,13 @@
 [license]: /LICENSE
-[license-badge]: https://img.shields.io/github/license/xlucky0/luci-theme-nuxlab?style=flat-square&a=1
-[prs]: https://github.com/xlucky0/luci-theme-nuxlab/pulls
+[license-badge]: https://img.shields.io/github/license/xlucky0/NuxLab-Theme?style=flat-square&a=1
+[prs]: https://github.com/xlucky0/NuxLab-Theme/pulls
 [prs-badge]: https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square
-[issues]: https://github.com/xlucky0/luci-theme-nuxlab/issues/new
+[issues]: https://github.com/xlucky0/NuxLab-Theme/issues/new
 [issues-badge]: https://img.shields.io/badge/Issues-welcome-brightgreen.svg?style=flat-square
-[release]: https://github.com/xlucky0/luci-theme-nuxlab/releases
-[release-badge]: https://img.shields.io/github/v/release/xlucky0/luci-theme-nuxlab?style=flat-square
-[download]: https://github.com/xlucky0/luci-theme-nuxlab/releases
-[download-badge]: https://img.shields.io/github/downloads/xlucky0/luci-theme-nuxlab/total?style=flat-square
-[contact]: https://t.me/jerryk6
-[contact-badge]: https://img.shields.io/badge/Contact-telegram-blue?style=flat-square
-
+[release]: https://github.com/xlucky0/NuxLab-Theme/releases
+[release-badge]: https://img.shields.io/github/v/release/xlucky0/NuxLab-Theme?style=flat-square
+[download]: https://github.com/xlucky0/NuxLab-Theme/releases
+[download-badge]: https://img.shields.io/github/downloads/xlucky0/NuxLab-Theme/total?style=flat-square
 <div align="center">
 <img src="htdocs/luci-static/nuxlab/img/nuxlab.svg" width="96" height="96" alt="NuxLab logo" />
 
@@ -30,7 +27,7 @@
 
 ## 3.1 新特性
 
-- **在线更新主题**：检查稳定版，通过固件原生 APK 或 OPKG 安装，保留 NuxLab 设置，校验安装包 SHA256 和大小。
+- **在线更新主题**：在兼容固件上检查稳定版并安装 APK v3，保留 NuxLab 设置，校验安装包 SHA256 和大小。
 - **布局修复**：优化 Dashboard 操作区、概览布局、动态列表和自定义 IP/MAC 输入框，兼顾窄屏、亮暗色和 RTL 布局。
 - **兼容性改进**：改善稳定版 OpenWrt 固件上的兼容性。
 
@@ -47,16 +44,15 @@ v3.0.0 及更早版本用户需先手动安装一次 v3.1.3，之后即可使用
 
 ## 安装
 
-**3.0 已将主题和配置功能合并到 `luci-theme-nuxlab`，全新安装只需这一个包。** 前往 [Releases](https://github.com/xlucky0/luci-theme-nuxlab/releases) 下载与固件原生包管理器匹配的格式。已有旧版独立配置插件的用户，请先按下方迁移步骤操作。
+**3.0 已将主题和配置功能合并到 `luci-theme-nuxlab`，全新安装只需这一个包。** 前往 [Releases](https://github.com/xlucky0/NuxLab-Theme/releases) 下载 APK v3 格式安装包。发行版仅支持使用 APK v3（`apk-tools 3.x`）的固件，不支持 OPKG/IPK 固件。
 
 | 包管理器 | 包格式 | 安装命令 |
 | --- | --- | --- |
-| `opkg` | `.ipk` | `opkg install ./luci-theme-nuxlab_*.ipk` |
 | APK v3（`apk-tools 3.x`） | `.apk` | `apk add --allow-untrusted ./luci-theme-nuxlab-*.apk` |
 
-安装前执行 `opkg update` 或 `apk update`。APK v2 无法读取本项目的 APK 包，请沿用固件原生包管理器。
+安装前执行 `apk update`。APK v2 无法读取本项目的 APK 包。
 
-需要翻译时，安装同次发行、相同格式的 `luci-i18n-nuxlab-<语言>` 语言包。
+需要翻译时，安装同次发行的 `luci-i18n-nuxlab-<语言>.apk` 语言包。
 
 在 **系统 → 系统 → 语言和界面 → 主题** 中选择 **NuxLab**。
 
@@ -67,15 +63,10 @@ v3.0.0 及更早版本用户需先手动安装一次 v3.1.3，之后即可使用
 
 3.0 的设置页面、配色、背景和 Logo 管理都在主题包内。发行附件中的 `luci-app-nuxlab` 是**沿用旧包名的空迁移包**，用于保留旧配置并将文件交给主题，不是另一个配置插件。
 
-1. 从**主题仓库同一次发行**中下载 `luci-app-nuxlab` 迁移包和 `luci-theme-nuxlab` 主题包，格式一致。
-2. 将两个文件放到路由器同一目录，在该目录打开终端。**无需先卸载旧插件**，按固件选择下面一组命令；第一条成功后，再执行第二条。
+1. 从**主题仓库同一次发行**中下载 APK v3 格式的 `luci-app-nuxlab` 迁移包和 `luci-theme-nuxlab` 主题包。
+2. 将两个文件放到兼容 APK v3 的固件同一目录，在该目录打开终端。**无需先卸载旧插件**；第一条成功后，再执行第二条。
 
 ```sh
-# opkg
-opkg install ./luci-app-nuxlab_*.ipk
-opkg install ./luci-theme-nuxlab_*.ipk
-
-# APK v3
 apk add --allow-untrusted ./luci-app-nuxlab-*.apk
 apk add --allow-untrusted ./luci-theme-nuxlab-*.apk
 ```
@@ -90,9 +81,9 @@ apk add --allow-untrusted ./luci-theme-nuxlab-*.apk
 
 背景支持本地图片、视频，以及 Bing、Unsplash、Wallhaven 在线壁纸；Unsplash 需填写 API Access Key。网站图标和登录 Logo 支持 PNG，每边 16–1024 像素、最大 1 MiB，网站图标需为正方形。
 
-在**主题更新**中手动检查最新稳定版、查看更新日志，并下载与固件包管理器匹配的安装包。
+在**主题更新**中手动检查最新稳定版、查看更新日志，并下载 APK v3 安装包。
 
-检测到更高版本后，可点击**立即更新**并确认，通过固件自带的 APK 或 OPKG 安装主题，保留当前 NuxLab 配置。页面显示下载、校验、安装状态及安装日志，刷新页面后可继续查看进度；安装完成后重新加载页面。更新器会先下载并校验主题与现有 NuxLab 翻译对应的语言包，再执行安装；如果发布中提供了 LuCI 当前配置语言的翻译，也会一并安装。自动安装要求对应安装包及 SHA256 校验值，不降级主题。现有翻译缺少可校验的语言包信息时，请从同一次发布中手动安装主题和语言包。
+在 APK v3 固件上检测到更高版本后，可点击**立即更新**并确认安装主题，同时保留当前 NuxLab 配置。页面显示下载、校验、安装状态及安装日志，刷新页面后可继续查看进度；安装完成后重新加载页面。更新器会先下载并校验主题与现有 NuxLab 翻译对应的 APK v3 语言包，再执行安装；如果发布中提供了 LuCI 当前配置语言的翻译，也会一并安装。自动安装要求对应安装包及 SHA256 校验值，不降级主题。现有翻译缺少可校验的语言包信息时，请从同一次发布中手动安装主题和语言包。
 
 从 KWRT 等将中文翻译内嵌在主题主包的固件升级时，首次安装官方主题会保留原有翻译，使用旧版更新器发起升级也适用。之后安装独立语言包即可完成翻译文件的归属交接。
 
@@ -110,18 +101,10 @@ apk add --allow-untrusted ./luci-theme-nuxlab-*.apk
 
 ![手机深色：经典侧栏登录、居中登录和首页](Screenshots/mobile-dark.png)
 
-## 贡献者
-
-<a href="https://github.com/xlucky0/luci-theme-nuxlab/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=xlucky0/luci-theme-nuxlab" />
-</a>
-
-Made with [contrib.rocks](https://contrib.rocks).
-
 ## 开发
 
 源码构建、LESS、模板、图标和检查说明见[开发文档](docs/DEVELOPMENT_ZH.md)。
 
-[下载](https://github.com/xlucky0/luci-theme-nuxlab/releases) · [版本历史](RELEASE_ZH.md) · [贡献者](https://github.com/xlucky0/luci-theme-nuxlab/graphs/contributors) · [反馈问题](https://github.com/xlucky0/luci-theme-nuxlab/issues)
+[下载](https://github.com/xlucky0/NuxLab-Theme/releases) · [版本历史](RELEASE_ZH.md) · [反馈问题](https://github.com/xlucky0/NuxLab-Theme/issues)
 
 采用 [Apache-2.0](LICENSE) 许可证。感谢 [luci-theme-material](https://github.com/LuttyYang/luci-theme-material/)。

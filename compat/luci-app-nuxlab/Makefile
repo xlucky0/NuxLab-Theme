@@ -7,9 +7,6 @@ PKG_LICENSE:=Apache-2.0
 
 LUCI_TITLE:=NuxLab configuration compatibility package
 LUCI_PKGARCH:=all
-# Upgrade this empty package before installing the integrated theme. Keeping
-# the dependency unversioned lets an existing theme satisfy this first step.
-LUCI_DEPENDS:=+luci-theme-nuxlab
 
 # Save even an unchanged legacy conffile before the empty package releases it.
 # The integrated theme consumes this private backup on its first initialization.

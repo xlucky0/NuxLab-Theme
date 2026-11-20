@@ -8,7 +8,7 @@ var callGet = rpc.declare({ object: 'luci.nuxlab_update', method: 'get', expect:
 var callCheck = rpc.declare({ object: 'luci.nuxlab_update', method: 'check', expect: { '': {} }, raise: true });
 var callStatus = rpc.declare({ object: 'luci.nuxlab_update', method: 'status', expect: { '': {} }, raise: true });
 var callStart = rpc.declare({ object: 'luci.nuxlab_update', method: 'start', params: ['tag', 'package'], expect: { '': {} }, raise: true });
-var releases = 'https://github.com/xlucky0/luci-theme-nuxlab/releases';
+var releases = 'https://github.com/xlucky0/NuxLab-Theme/releases';
 
 function version(value) {
 	if (typeof value !== 'string' || value.length > 80)
@@ -36,16 +36,16 @@ function release(state) {
 	if (!state || typeof state.tag !== 'string' || !/^v?[0-9]+(?:\.[0-9]+){1,3}$/.test(state.tag))
 		return null;
 	var manager = state.package_manager;
-	var file = state[manager === 'opkg' ? 'ipk' : 'apk'];
-	var match = typeof file === 'string' && (manager === 'opkg' ?
-		file.match(/^luci-theme-nuxlab_([0-9][0-9.~a-z-]*)_all\.ipk$/) : manager === 'apk' ?
-			file.match(/^luci-theme-nuxlab-([0-9][0-9._a-z-]*)\.apk$/) : null);
+	var apk = typeof state.apk === 'string' ? state.apk.match(/^luci-theme-nuxlab-([0-9][0-9._a-z-]*)\.apk$/) : null;
+	var ipk = typeof state.ipk === 'string' ? state.ipk.match(/^luci-theme-nuxlab_([0-9][0-9.~a-z-]*)_all\.ipk$/) : null;
+	var match = manager === 'opkg' ? ipk || apk : manager === 'apk' ? apk : null;
+	var file = match && (manager === 'opkg' ? ipk && state.ipk : state.apk);
 	var parsed = match && version(match[1]);
 	var tag = version(state.tag);
 	if (!parsed || !tag || parsed[4] !== 3 || parsed.slice(0, 4).join('.') !== tag.slice(0, 4).join('.'))
-		match = null;
-	return { tag: state.tag, file: match ? file : null, version: match ? match[1] : state.tag,
-		parsed: match ? parsed : null };
+		match = null, file = null, parsed = null;
+	return { tag: state.tag, file: file || null, version: parsed ? match[1] : state.tag,
+		parsed: parsed || null, incompatible: manager === 'opkg' && !ipk && !!apk };
 }
 
 return baseclass.extend({
@@ -115,7 +115,7 @@ return baseclass.extend({
 		function mayInstall() {
 			var remote = release(state);
 			var local = version(state && state.current_version);
-			return !!(remote && remote.file && remote.parsed && local && compare(local, remote.parsed) < 0 &&
+			return !!(state && state.package_manager === 'apk' && remote && remote.file && remote.parsed && local && compare(local, remote.parsed) < 0 &&
 				state.can_upgrade && map && !map.readonly && !needsReload());
 		}
 
@@ -140,7 +140,7 @@ return baseclass.extend({
 			button.className = 'cbi-button ' + (remote ? 'cbi-button-neutral' : 'cbi-button-action');
 			installButton.hidden = !mayInstall();
 			installButton.disabled = busy || active || confirming;
-			installHint.hidden = !(available && !state.can_upgrade && map && !map.readonly && !active && !reloadNeeded);
+			installHint.hidden = !(available && !remote.incompatible && !state.can_upgrade && map && !map.readonly && !active && !reloadNeeded);
 			reloadButton.hidden = !reloadNeeded || active;
 			button.textContent = busy ? _('Checking for updates...') : _('Check for updates');
 			content.setAttribute('aria-busy', String(busy));
@@ -166,6 +166,8 @@ return baseclass.extend({
 				showStatus(_('Not checked yet.'));
 			else if (!local || !remote.parsed)
 				showStatus(_('Unable to compare this version. View the release for details.'));
+			else if (order < 0 && remote.incompatible)
+				showStatus(_('This release uses APK v3 and cannot be installed on this opkg-based firmware.'), 'error');
 			else
 				showStatus(order < 0 ? _('Update available.') : order === 0 ?
 					_('Your theme is up to date.') : _('The installed version is newer than the latest stable release.'),

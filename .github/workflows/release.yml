@@ -22,10 +22,8 @@ jobs:
     outputs:
       prerelease: ${{ steps.version.outputs.prerelease }}
       apk_version: ${{ steps.version.outputs.apk_version }}
-      ipk_version: ${{ steps.version.outputs.ipk_version }}
       package_release: ${{ steps.version.outputs.package_release }}
       apk_i18n_version: ${{ steps.version.outputs.apk_i18n_version }}
-      ipk_i18n_version: ${{ steps.version.outputs.ipk_i18n_version }}
       docs_branch: ${{ steps.branch.outputs.name }}
     steps:
       - uses: actions/checkout@v7
@@ -52,9 +50,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - package_format: ipk
-            sdk_base_url: https://downloads.openwrt.org/releases/23.05.5/targets/x86/64
-            sdk_pattern: openwrt-sdk-23.05.5-x86-64_.*Linux-x86_64.tar.xz
           - package_format: apk
             sdk_base_url: https://downloads.openwrt.org/releases/25.12.5/targets/x86/64
             sdk_pattern: openwrt-sdk-25.12.5-x86-64_.*Linux-x86_64.tar.zst
@@ -178,7 +173,7 @@ jobs:
 
       - name: Prepare local packages
         env:
-          RELEASE_VERSION: ${{ matrix.package_format == 'apk' && needs.metadata.outputs.apk_version || needs.metadata.outputs.ipk_version }}
+          RELEASE_VERSION: ${{ needs.metadata.outputs.apk_version }}
           PACKAGE_RELEASE: ${{ needs.metadata.outputs.package_release }}
           NUXLAB_UPDATE_PRIMARY_URL: ${{ vars.NUXLAB_UPDATE_PRIMARY_URL }}
           NUXLAB_UPDATE_FALLBACK_URL: ${{ vars.NUXLAB_UPDATE_FALLBACK_URL }}
@@ -206,7 +201,7 @@ jobs:
 
           python3 .github/scripts/generate_update_site.py sources \
             --primary "$NUXLAB_UPDATE_PRIMARY_URL" \
-            --fallback "${NUXLAB_UPDATE_FALLBACK_URL:-https://xlucky0.github.io/luci-theme-nuxlab/updates/stable.json}" \
+            --fallback "${NUXLAB_UPDATE_FALLBACK_URL:-https://xlucky0.github.io/NuxLab-Theme/updates/stable.json}" \
             --output sdk/package/luci-theme-nuxlab/root/usr/share/nuxlab/update-sources.json
 
           for makefile in \
@@ -276,25 +271,14 @@ jobs:
         run: |
           mkdir -p "artifacts/${PACKAGE_FORMAT}"
 
-          if [ "${PACKAGE_FORMAT}" = "apk" ]; then
-            find sdk/bin/packages -type f \
-              \( -name "luci-theme-nuxlab-*.apk" \
-              -o -name "luci-app-nuxlab-*.apk" \
-              -o -name "luci-i18n-nuxlab-*.apk" \) \
-              -exec cp -v {} "artifacts/${PACKAGE_FORMAT}/" \;
+          find sdk/bin/packages -type f \
+            \( -name "luci-theme-nuxlab-*.apk" \
+            -o -name "luci-app-nuxlab-*.apk" \
+            -o -name "luci-i18n-nuxlab-*.apk" \) \
+            -exec cp -v {} "artifacts/${PACKAGE_FORMAT}/" \;
 
-            theme_count="$(find "artifacts/${PACKAGE_FORMAT}" -maxdepth 1 -type f -name "luci-theme-nuxlab-*.apk" | wc -l)"
-            config_count="$(find "artifacts/${PACKAGE_FORMAT}" -maxdepth 1 -type f -name "luci-app-nuxlab-*.apk" | wc -l)"
-          else
-            find sdk/bin/packages -type f \
-              \( -name "luci-theme-nuxlab_*.ipk" \
-              -o -name "luci-app-nuxlab_*.ipk" \
-              -o -name "luci-i18n-nuxlab-*.ipk" \) \
-              -exec cp -v {} "artifacts/${PACKAGE_FORMAT}/" \;
-
-            theme_count="$(find "artifacts/${PACKAGE_FORMAT}" -maxdepth 1 -type f -name "luci-theme-nuxlab_*.ipk" | wc -l)"
-            config_count="$(find "artifacts/${PACKAGE_FORMAT}" -maxdepth 1 -type f -name "luci-app-nuxlab_*.ipk" | wc -l)"
-          fi
+          theme_count="$(find "artifacts/${PACKAGE_FORMAT}" -maxdepth 1 -type f -name "luci-theme-nuxlab-*.apk" | wc -l)"
+          config_count="$(find "artifacts/${PACKAGE_FORMAT}" -maxdepth 1 -type f -name "luci-app-nuxlab-*.apk" | wc -l)"
 
           missing_packages=0
           if [ "${theme_count}" -lt 1 ] || [ "${config_count}" -lt 1 ]; then
@@ -303,11 +287,7 @@ jobs:
           fi
 
           while IFS= read -r package; do
-            if [ "${PACKAGE_FORMAT}" = "apk" ]; then
-              pattern="${package}-*.apk"
-            else
-              pattern="${package}_*.ipk"
-            fi
+            pattern="${package}-*.apk"
 
             if ! find "artifacts/${PACKAGE_FORMAT}" -maxdepth 1 -type f -name "${pattern}" -print -quit | grep -q .; then
               echo "::error::Missing translation package for ${PACKAGE_FORMAT}: ${package}"
@@ -324,7 +304,7 @@ jobs:
       - name: Verify translation package versions
         env:
           PACKAGE_FORMAT: ${{ matrix.package_format }}
-          EXPECTED_VERSION: ${{ matrix.package_format == 'apk' && needs.metadata.outputs.apk_i18n_version || needs.metadata.outputs.ipk_i18n_version }}
+          EXPECTED_VERSION: ${{ needs.metadata.outputs.apk_i18n_version }}
         run: |
           python3 .github/scripts/check_translation_versions.py \
             --format "${PACKAGE_FORMAT}" \

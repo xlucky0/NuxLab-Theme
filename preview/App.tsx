@@ -645,7 +645,7 @@ export function App() {
               </span>
               <span className="inline-flex items-center gap-1.5 font-mono-num">
                 <Layers className="h-3 w-3" />
-                xlucky0/luci-theme-nuxlab · Apache-2.0
+                xlucky0/NuxLab-Theme · Apache-2.0
               </span>
             </footer>
           </main>

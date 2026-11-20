@@ -50,7 +50,6 @@ def generate(release, packages, repository, output):
     manifest = {'schema': 1, 'repository': repository, 'tag': tag,
                 'published_at': published_at, 'notes': notes[:32768]}
     names = {
-        'ipk': f'luci-theme-nuxlab_{metadata["ipk_version"]}_all.ipk',
         'apk': f'luci-theme-nuxlab-{metadata["apk_version"]}-r{metadata["package_release"]}.apk',
     }
     assets = release.get('assets', [])
@@ -70,12 +69,9 @@ def generate(release, packages, repository, output):
     for kind, name in names.items():
         manifest[kind], manifest[kind + '_sha256'], manifest[kind + '_size'] = verified_asset(name)
 
-    # Optional for older releases; every published translation must have both
-    # formats so a router can keep its language when crossing firmware feeds.
+    # Translation packages are published only for APK v3 firmware.
     languages = set()
     patterns = [
-        re.compile(r'luci-i18n-nuxlab-([a-z]{2,3}(?:-[a-z0-9]{2,8})?)_'
-                   + re.escape(metadata['ipk_i18n_version']) + r'_all\.ipk'),
         re.compile(r'luci-i18n-nuxlab-([a-z]{2,3}(?:-[a-z0-9]{2,8})?)-'
                    + re.escape(metadata['apk_i18n_version']) + r'\.apk'),
     ]
@@ -94,7 +90,6 @@ def generate(release, packages, repository, output):
     for language in sorted(languages):
         entry = {}
         for kind, name in {
-            'ipk': f'luci-i18n-nuxlab-{language}_{metadata["ipk_i18n_version"]}_all.ipk',
             'apk': f'luci-i18n-nuxlab-{language}-{metadata["apk_i18n_version"]}.apk',
         }.items():
             entry[kind], entry[kind + '_sha256'], entry[kind + '_size'] = verified_asset(name, 1048576)
@@ -118,12 +113,12 @@ def main():
     commands = parser.add_subparsers(dest='command', required=True)
     sources = commands.add_parser('sources', help='Configure URLs included in a theme build.')
     sources.add_argument('--primary', default='')
-    sources.add_argument('--fallback', default='https://xlucky0.github.io/luci-theme-nuxlab/updates/stable.json')
+    sources.add_argument('--fallback', default='https://xlucky0.github.io/NuxLab-Theme/updates/stable.json')
     sources.add_argument('--output', type=Path, required=True)
     site = commands.add_parser('site', help='Generate a Pages artifact from an official release.')
     site.add_argument('--release', type=Path, required=True)
     site.add_argument('--packages', type=Path, required=True)
-    site.add_argument('--repository', default='xlucky0/luci-theme-nuxlab')
+    site.add_argument('--repository', default='xlucky0/NuxLab-Theme')
     site.add_argument('--output', type=Path, required=True)
     args = parser.parse_args()
     try:

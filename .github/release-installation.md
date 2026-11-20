@@ -1,3 +1,9 @@
+## Package format / 安装包格式
+
+This release publishes APK v3 packages only. Install them only on firmware using APK v3 (`apk-tools 3.x`); OPKG/IPK firmware is not supported.
+
+本次发行仅提供 APK v3 安装包。仅适用于使用 APK v3（`apk-tools 3.x`）的固件，不支持 OPKG/IPK 固件。
+
 ## 修复与改进
 
 - 修复提示条遮挡下拉菜单、表格下拉选项显示不完整的问题（#740、#741）。
@@ -12,4 +18,4 @@
 - Improve Firefox ESR appearance controls, joined inputs, dropdowns and port statistics (#739).
 - Add background video playback controls and a keyboard skip link, and reduce realtime chart layout work.
 
-v3.1.0 及以上可在线升级。安装说明：[中文](https://github.com/xlucky0/luci-theme-nuxlab/blob/v3.1.4/README_ZH.md#安装) · [English](https://github.com/xlucky0/luci-theme-nuxlab/blob/v3.1.4/README.md#install)
+v3.1.0 及以上可在线升级。安装说明：[中文](https://github.com/xlucky0/NuxLab-Theme/blob/main/README_ZH.md#安装) · [English](https://github.com/xlucky0/NuxLab-Theme/blob/main/README.md#install)

@@ -108,6 +108,7 @@ if op != 'get': p.write_text(json.dumps(state))
 
     def test_compatibility_package_hands_off_even_an_unmodified_conffile(self):
         recipe = (ROOT / 'compat/luci-app-nuxlab/Makefile').read_text()
+        self.assertNotRegex(recipe, r'(?m)^LUCI_DEPENDS\s*:?=')
         script = re.search(r'define Package/luci-app-nuxlab/preinst\n(.*?)\nendef',
                            recipe, re.S).group(1).replace('$$', '$')
         preinst = self.root / 'preinst'

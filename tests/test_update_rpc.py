@@ -183,7 +183,7 @@ json_dump() {{ printf '%s\\n' "$FIXTURE_JSON"; }}
                         LANG_DATA=str(self.directory / 'language'), LANG_INSTALLED=str(self.directory / 'languages-installed'))
         (self.directory / 'package').write_bytes(b'nuxlab-package')
         (self.directory / 'language').write_bytes(b'nuxlab-language')
-        self.release = {'schema': 1, 'repository': 'xlucky0/luci-theme-nuxlab', 'tag': 'v3.0.0',
+        self.release = {'schema': 1, 'repository': 'xlucky0/NuxLab-Theme', 'tag': 'v3.0.0',
                         'published_at': '2026-10-16T01:00:00Z', 'notes': '## 更新\n- 修复布局。',
                         'ipk': 'luci-theme-nuxlab_3.0.0-2_all.ipk', 'apk': 'luci-theme-nuxlab-3.0.0-r2.apk',
                         'ipk_sha256': hashlib.sha256(b'nuxlab-package').hexdigest(),
@@ -226,6 +226,20 @@ json_dump() {{ printf '%s\\n' "$FIXTURE_JSON"; }}
         self.assertNotIn('Cache-Control: no-cache', requests)
         self.assertNotIn('untrusted.invalid', requests)
         self.assertEqual(self.cache.stat().st_mode & 0o777, 0o600)
+
+    def test_apk_only_manifest_is_valid_and_does_not_offer_opkg_installation(self):
+        for field in ['ipk', 'ipk_sha256', 'ipk_size']:
+            self.release.pop(field)
+        self.payload.write_text(json.dumps(self.release))
+        result = self.call('check')
+        self.assertEqual(result['result'], 0)
+        self.assertEqual(result['apk'], 'luci-theme-nuxlab-3.0.0-r2.apk')
+        self.assertNotIn('ipk', result)
+        self.env.update(APK_VERSION='', OPKG_VERSION='3.0.0-1')
+        result = self.call('check')
+        self.assertEqual(result['result'], 0)
+        self.assertFalse(result['can_upgrade'])
+        self.assertNotIn('ipk', result)
 
     def test_success_cache_avoids_network_but_reloads_the_installed_version(self):
         self.call('check')

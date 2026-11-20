@@ -1,0 +1,32 @@
+{#
+	NuxLab is a clean Cyberpunk Neon & Frost Indigo HTML5 theme for LuCI.
+	Based on luci-theme-argon (Copyright 2020 Jerrykuku) and luci-theme-material.
+
+	luci-theme-nuxlab
+	https://github.com/xlucky0/luci-theme-nuxlab
+
+	Licensed to the public under the Apache License 2.0
+-#}
+
+		</div>
+		<footer class="mobile-hide" style="text-wrap: auto">
+			<div class="footer-content" style="display: flex; flex-wrap: wrap; gap: 0.5em; justify-content: end;">
+				<a class="luci-link" href="https://github.com/openwrt/luci" target="_blank">Powered by {{ version.luciname }} ({{ version.luciversion }})</a>
+
+				<span class="footer-separator">|</span>
+
+				<a href="https://github.com/xlucky0/luci-theme-nuxlab" target="_blank">NuxLab {# vPKG_VERSION #}</a>
+
+				<span class="footer-separator">|</span>
+
+				<a class="luci-link" href="{{ version.disturl }}" target="_blank">{{ version.distname }} {{ version.distversion }}-{{ version.distrevision }}</a>
+
+				<ul class="breadcrumb pull-right" id="modemenu" style="display:none"></ul>
+			</div>
+		</footer>
+	</main>
+</div>
+</div>
+{% include('themes/' + theme + '/page_scripts', { is_login: false }) %}
+</body>
+</html>

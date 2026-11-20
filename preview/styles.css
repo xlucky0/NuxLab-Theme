@@ -1,0 +1,83 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --font-display: "Bricolage Grotesque", "Plus Jakarta Sans", sans-serif;
+    --font-sans: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    margin: 0;
+  }
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+.font-mono-num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Lightweight GPU-composited animations */
+@keyframes nuxlab-dash-flow {
+  from {
+    stroke-dashoffset: 24;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes nuxlab-node-pulse {
+  0%, 100% {
+    opacity: 0.9;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.35;
+    transform: scale(1.65);
+  }
+}
+
+.nuxlab-flow-line {
+  stroke-dasharray: 5 5;
+  animation: nuxlab-dash-flow 1.4s linear infinite;
+}
+
+.nuxlab-node-ring {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: nuxlab-node-pulse 2.6s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nuxlab-flow-line,
+  .nuxlab-node-ring {
+    animation: none !important;
+  }
+}
+
+/* Custom thin scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(99, 102, 241, 0.35);
+  border-radius: 999px;
+}
+
+[data-nuxlab-mode="dark"] ::-webkit-scrollbar-thumb {
+  background: rgba(0, 229, 255, 0.32);
+}

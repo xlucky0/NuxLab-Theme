@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="none">
+  <defs>
+    <linearGradient id="nuxlab-bg" x1="16" y1="16" x2="240" y2="240" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#090d1e"/>
+      <stop offset="55%" stop-color="#1e1b4b"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+    <linearGradient id="nuxlab-neon" x1="56" y1="56" x2="200" y2="200" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#00f0ff"/>
+      <stop offset="50%" stop-color="#6366f1"/>
+      <stop offset="100%" stop-color="#d946ef"/>
+    </linearGradient>
+  </defs>
+  <rect x="8" y="8" width="240" height="240" rx="56" fill="url(#nuxlab-bg)"/>
+  <rect x="10" y="10" width="236" height="236" rx="54" stroke="url(#nuxlab-neon)" stroke-opacity="0.45" stroke-width="3"/>
+  <path d="M128 38L206 83V173L128 218L50 173V83L128 38Z" stroke="url(#nuxlab-neon)" stroke-width="8" stroke-linejoin="round" fill="rgba(0, 240, 255, 0.06)"/>
+  <path d="M88 166V90L168 166V90" stroke="#ffffff" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="88" cy="90" r="9" fill="#00f0ff"/>
+  <circle cx="168" cy="166" r="9" fill="#d946ef"/>
+  <circle cx="168" cy="90" r="6" fill="#00f0ff"/>
+  <circle cx="88" cy="166" r="6" fill="#6366f1"/>
+</svg>

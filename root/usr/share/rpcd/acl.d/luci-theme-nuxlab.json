@@ -1,0 +1,11 @@
+{
+    "luci-theme-nuxlab": {
+        "description": "Grant UCI access for luci-theme-nuxlab",
+        "read": {
+            "ubus": {
+                "luci.nuxlab_appearance": [ "get" ]
+            },
+            "uci": [ "nuxlab" ]
+        }
+    }
+}

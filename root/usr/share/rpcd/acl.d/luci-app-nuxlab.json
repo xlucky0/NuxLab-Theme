@@ -1,0 +1,30 @@
+{
+	"luci-app-nuxlab": {
+		"description": "Grant UCI access for luci-app-nuxlab",
+		"read": {
+			"file": {
+				"/www/luci-static/nuxlab/background/*": [ "list" ]
+			},
+			"ubus": {
+				"luci.nuxlab": [ "avail" ],
+				"luci.nuxlab_update": [ "get", "check", "status" ],
+				"luci.nuxlab_appearance": [ "get" ],
+				"luci.nuxlab_branding": [ "get" ]
+			},
+			"uci": [ "nuxlab" ]
+		},
+		"write": {
+			"file": {
+				"/tmp/nuxlab_background.tmp": [ "write" ],
+				"/tmp/nuxlab_branding_*.png": [ "write" ]
+			},
+			"ubus": {
+				"luci.nuxlab": [ "remove", "rename" ],
+				"luci.nuxlab_update": [ "start" ],
+				"luci.nuxlab_appearance": [ "set" ],
+				"luci.nuxlab_branding": [ "set", "reset" ]
+			},
+			"uci": [ "nuxlab" ]
+		}
+	}
+}

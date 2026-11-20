@@ -1,0 +1,31 @@
+# Local preview environment and development-only tooling
+/.preview/
+/dev.sh
+/tools/preview/
+/tools/media/
+
+# Local task notes
+/task_plan.md
+/findings.md
+/progress.md
+
+# Dependencies and interpreter caches
+node_modules/
+__pycache__/
+*.py[cod]
+/.cache/
+
+# OpenWrt & preview build outputs
+/dist/
+/sdk/
+/artifacts/
+/release-assets/
+/nuxlab-i18n-packages.txt
+*.ipk
+*.apk
+
+# OS and editor temporary files
+.DS_Store
+*~
+*.swp
+*.swo

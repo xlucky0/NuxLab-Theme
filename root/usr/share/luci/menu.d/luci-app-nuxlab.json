@@ -1,0 +1,14 @@
+{
+	"admin/system/nuxlab": {
+		"title": "NuxLab Config",
+		"order": 90,
+		"action": {
+			"type": "view",
+			"path": "nuxlab"
+		},
+		"depends": {
+			"acl": [ "luci-app-nuxlab" ],
+			"uci": { "nuxlab": true }
+		}
+	}
+}

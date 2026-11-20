@@ -1,0 +1,6 @@
+{
+  "name": "NuxLab · OpenWrt LuCI Theme",
+  "description": "Modern OpenWrt LuCI theme (luci-theme-nuxlab & luci-app-nuxlab) with Frost Indigo Light Mode, Cyberpunk Neon Dark Mode, and live interactive preview.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}

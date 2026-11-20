@@ -1,0 +1,290 @@
+// out: false
+// Private LESS primitives: only semantic token declarations consume these values.
+// Components consume semantic roles rather than the private sRGB primitives.
+@neutral-0: #fff;
+@neutral-50: #f8faff;
+@neutral-100: #f3f6ff;
+@neutral-150: #eef1fb;
+@neutral-200: #e7ebf7;
+@neutral-250: #dfe4f2;
+@neutral-275: #e6ecf8;
+@neutral-300: #d3daf0;
+@neutral-350: #cbd5e1;
+@neutral-400: #94a3b8;
+@neutral-500: #64748b;
+@neutral-550: #52607a;
+@neutral-600: #475569;
+@neutral-650: #334155;
+@neutral-700: #273452;
+@neutral-750: #1d2949;
+@neutral-800: #141d38;
+@neutral-825: #101730;
+@neutral-850: #0c1226;
+@neutral-900: #090d1b;
+@neutral-950: #060812;
+@neutral-1000: #02040a;
+@red-500: #ef4444;
+@red-300: #ff5c8a;
+@red-600: #dc2652;
+@orange-500: #f97316;
+@amber-300: #fbbf24;
+@amber-700: #92400e;
+@green-500: #10b981;
+@green-700: #047857;
+@cyan-500: #06b6d4;
+@cyber-cyan: #00e5ff;
+@cyber-magenta: #d946ef;
+@cyber-emerald: #10f5a8;
+@blue-300: #38bdf8;
+@green-300: #34d399;
+@orange-300: #fb923c;
+
+// Each role is declared once: light, dark. A single value applies to both.
+// Keep different roles separate even when they currently share a primitive.
+@theme-palette: {
+  // Accent and status
+  primary: var(--light-primary), var(--dark-primary);
+  success: @green-500, @cyber-emerald;
+  info: @cyan-500, @cyber-cyan;
+  warning: @orange-500, @amber-300;
+  danger: @red-500, @red-300;
+  error-text: #ffd600, var(--danger);
+  strength-weak-text: #b42318, #ffb4ab;
+  strength-medium-text: #805600, #f5c24b;
+  strength-strong-text: #166534, #86efac;
+
+  // Text roles
+  text-strong: #1e293b, #f1f5f9;
+  text-color: #334155, @neutral-350;
+  muted-text: #64748b, @neutral-400;
+  control-text: var(--text-color);
+  soft-text: #94a3b8, @neutral-350;
+  text-on-accent: @neutral-0;
+  accent-text: var(--text-on-accent), var(--dark-on-primary);
+  accent-border: var(--primary), var(--dark-link-color);
+  accent-shadow-color: rgba(79, 70, 229, .18), var(--dark-accent-shadow);
+  neutral-action-text: var(--text-on-accent), var(--accent-text);
+  notice-text: var(--text-on-accent), var(--accent-text);
+  text-inverse: @neutral-0;
+  placeholder-color: #64748b, @neutral-400;
+  focus-ring: #4338ca, var(--dark-focus-ring);
+  control-focus: var(--primary), var(--dark-control-focus);
+  link-color: var(--primary), var(--dark-link-color);
+  help-text: var(--primary), var(--dark-link-color);
+  code-text: #1e293b, #e2e8f0;
+  data-token-text: #4338ca, var(--link-color);
+  log-text: #1e293b, #cbd5e1;
+  overlay-text: #0f172a, @neutral-400;
+
+  // Surfaces
+  background-color: @neutral-150, @neutral-950;
+  main-bg: transparent, var(--background-color);
+  surface-color: @neutral-0, @neutral-850;
+  surface-raised: @neutral-0, @neutral-900;
+  surface-panel: @neutral-0, @neutral-825;
+  surface-muted: @neutral-100, @neutral-825;
+  surface-inset: @neutral-150, @neutral-900;
+  surface-active: #e8ecff, #162246;
+  surface-contrast: @neutral-250, @neutral-750;
+  row-color: #f8faff, var(--surface-color);
+  row-alt: @neutral-50, @neutral-825;
+  media-bg: @neutral-1000;
+
+  // Borders and separators
+  border-color: #dce2f4, @neutral-750;
+  control-border: var(--border-color), #2a3b68;
+  control-subtle-border: var(--border-muted), var(--control-border);
+  border-subtle: #e2e8f6, @neutral-850;
+  border-muted: rgba(79, 70, 229, .14), rgba(0, 229, 255, .20);
+  border-strong: #c7d2fe, rgba(0, 229, 255, .36);
+  border-emphasis: @neutral-500, @neutral-400;
+  border-inverse: @neutral-0;
+  separator-color: @neutral-150, #131b36;
+  table-border: thin solid var(--border-subtle), 0;
+  overlay-focus: #1e293b, @neutral-400;
+
+  // Intentional component variants
+  header-bg: var(--primary), #090e1f;
+  menu-color: #475569, @neutral-350;
+  main-menu-color: #1e293b, #e2e8f0;
+  sidebar-brand-color: var(--primary), @cyber-cyan;
+  invalid-bg: #fce6e6, #281020;
+  command-bg: @neutral-200, @neutral-850;
+  input-bg: @neutral-0, #070b17;
+  select-bg: var(--surface-color), var(--input-bg);
+  dropdown-control-bg: transparent, var(--input-bg);
+  neutral-button-bg: #eef2ff, var(--primary);
+  neutral-action-bg: @neutral-500, var(--primary);
+  action-muted-solid: @neutral-500, @neutral-650;
+  status-neutral-bg: #312e81, #172042;
+  plain-button-bg: #eef2ff, #273452;
+  plain-button-text: #475569, @neutral-0;
+  tab-color: var(--primary), var(--link-color);
+  tab-item-bg: #e2e8f8, @neutral-825;
+  tab-inactive-color: #475569, @neutral-350;
+  progress-bg: @neutral-250, var(--surface-inset);
+  progress-fill: var(--primary), var(--dark-progress-fill);
+  chart-series-1: #4f46e5, @cyber-cyan;
+  chart-series-2: #10b981, @cyber-magenta;
+  chart-series-3: #ef4444, @red-300;
+  chart-series-4: #f97316, @orange-300;
+  chart-series-5: #eab308, @amber-300;
+  chart-area-opacity: .35, .20;
+  iface-bg: @neutral-50, transparent;
+  iface-head-bg: @neutral-200, #162246;
+  iface-head-text: var(--text-strong), @neutral-0;
+  iface-body-bg: transparent, @neutral-800;
+  iface-border: 0, 1px solid var(--separator-color);
+  badge-bg: #eef2ff, #141d38;
+  label-bg: #94a3b8, #334155;
+  dropdown-text: var(--text-strong);
+  dropdown-selected-text: var(--text-strong);
+  dropdown-selected-bg: #e0e7ff, var(--dark-selected-bg);
+  dropdown-hover-bg: var(--surface-active);
+  sidebar-scrollbar: @neutral-100, @neutral-850;
+  login-panel-rgb: ~"248, 250, 255", ~"6, 10, 22";
+  login-text: #0f172a, #e2e8f0;
+  login-input-border: @neutral-0, rgba(0, 229, 255, .35);
+
+  // Feedback and pending changes
+  positive-bg: var(--primary);
+  danger-bg: var(--danger), @red-600;
+  success-bg: var(--success), @green-700;
+  feedback-text: inherit, var(--text-on-accent);
+  negative-bg: var(--danger), var(--danger-bg);
+  reset-bg: #f59e0b, var(--warning-bg);
+  reset-border: #d97706, var(--warning-bg);
+  reset-action-bg: var(--danger), var(--reset-bg);
+  success-action-bg: #10b981, var(--success-bg);
+  success-action-border: #059669, var(--success-bg);
+  warning-action-bg: var(--warning), var(--warning-bg);
+  warning-badge-bg: #f59e0b, var(--warning-bg);
+  notice-bg: var(--info), var(--primary);
+  warning-bg: var(--warning), @amber-700;
+  error-bg: @orange-500, #3b1224;
+  warning-heading-bg: transparent, #784f00;
+  warning-heading-color: #8c6900, var(--warning);
+  feedback-heading-bg: var(--warning-heading-bg), transparent;
+  feedback-heading-text: var(--warning-heading-color), inherit;
+  change-added-bg: #dcfce7, #0e352b;
+  change-added-border: #10b981, var(--success);
+  change-removed-bg: #fee2e2, #3b1224;
+  change-removed-border: #ef4444, var(--danger);
+  change-modified-bg: @neutral-200, @neutral-800;
+  change-modified-border: @neutral-350, #2a3b68;
+
+  // Plugin contracts: VLAN roles, zone RGB values and legacy adapters
+  plugin-card-bg: @neutral-0, @neutral-800;
+  vlan-text-muted: #64748b, @neutral-400;
+  vlan-selected-bg: #e0e7ff, var(--dark-selected-bg);
+  vlan-selected-hover-bg: #c7d2fe, var(--dark-selected-hover-bg);
+  vlan-selected-border: var(--primary), var(--link-color);
+  vlan-selected-ring: rgba(79, 70, 229, .28), var(--dark-accent-ring);
+  checkmark-icon: url('data:image/svg+xml,%3csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 8 8\'%3e%3cpath fill=\'%23fff\' d=\'M6.564.75l-3.59 3.612-1.538-1.55L0 4.26 2.974 7.25 8 2.193z\'/%3e%3c/svg%3e'), var(--dark-checkmark-icon);
+  vlan-tagged-rgb: ~"140, 72, 0", ~"251, 191, 36";
+  vlan-untagged-rgb: ~"6, 104, 95", ~"45, 212, 191";
+  vlan-checked-text: @neutral-0, @neutral-900;
+  zone-positive-rgb: ~"144, 240, 144", ~"16, 185, 129";
+  zone-negative-rgb: ~"240, 144, 144", ~"239, 68, 68";
+  zone-neutral-rgb: ~"238, 238, 238", ~"51, 65, 85";
+  zone-label-color: @neutral-800, @neutral-0;
+  plugin-text-muted: @neutral-500, #a1a1aa;
+  plugin-neutral: @neutral-500, @neutral-650;
+  plugin-scrollbar: @neutral-100, @neutral-700;
+
+  // Appearance effects (lightweight GPU-friendly elevation + cyber neon edge glow)
+  command-shadow: ~"inset 0 1px 0 rgba(255, 255, 255, .35), 0 1px 2px rgba(30, 41, 59, .05)", ~"inset 0 1px 0 rgba(0, 229, 255, .08), 0 2px 6px rgba(0, 0, 0, .45)";
+  section-shadow: ~"0 1px 2px rgba(49, 46, 129, .05), 0 10px 28px -8px rgba(49, 46, 129, .10)", ~"0 0 0 1px rgba(0, 229, 255, .12), 0 12px 32px -10px rgba(0, 0, 0, .72), 0 0 22px -10px rgba(0, 229, 255, .20)";
+  sidebar-shadow: ~"1px 0 0 rgba(79, 70, 229, .08), 8px 0 30px -10px rgba(49, 46, 129, .14)", ~"1px 0 0 rgba(0, 229, 255, .18), 8px 0 36px -8px rgba(0, 0, 0, .75)";
+  dropdown-shadow: ~"0 4px 10px rgba(49, 46, 129, .08), 0 16px 36px -8px rgba(49, 46, 129, .16)", ~"0 0 0 1px rgba(0, 229, 255, .22), 0 16px 40px -8px rgba(0, 0, 0, .75), 0 0 20px -8px rgba(217, 70, 239, .22)";
+  button-hover-shadow: ~"0 4px 10px rgba(79, 70, 229, .20), 0 8px 20px -6px var(--accent-shadow-color)", ~"0 0 16px -2px var(--dark-accent-ring), 0 4px 14px rgba(0, 0, 0, .55)";
+  control-focus-shadow: ~"0 0 0 3px var(--accent-shadow-color), 0 2px 6px rgba(49, 46, 129, .08)", ~"0 0 0 2px var(--dark-control-ring), 0 0 12px -2px var(--dark-accent-shadow)";
+  file-icon-filter: none, invert(.75) hue-rotate(165deg);
+  image-filter: none, invert(.92) hue-rotate(175deg);
+};
+
+// Emit only changed values in dark mode. Both mode selectors use this map.
+.theme-palette(@mode) {
+  each(@theme-palette, {
+    @light: extract(@value, 1);
+    @dark: if(length(@value) > 1, extract(@value, 2), @light);
+    // Compare CSS text: LESS otherwise treats different var() calls as equal.
+    @light-css: ~"@{light}";
+    @dark-css: ~"@{dark}";
+    .emit() when (@mode = light) { --@{key}: @light; }
+    .emit() when (@mode = dark) and not (@light-css = @dark-css) { --@{key}: @dark; }
+    .emit();
+  });
+}
+
+:root {
+  color-scheme: light;
+  // Runtime settings injected by LuCI; names are part of the configuration API.
+  --light-primary: #4f46e5;
+  // Fallbacks tuned for NuxLab Cyberpunk Neon dark mode.
+  --dark-primary: #00e5ff;
+  --dark-on-primary: #040814;
+  --dark-link-color: #22d3ee;
+  --dark-focus-ring: #a5f3fc;
+  --dark-control-focus: #00f0ff;
+  --dark-progress-fill: #22d3ee;
+  --dark-control-ring: rgba(0, 229, 255, .24);
+  --dark-selected-bg: #102a3d;
+  --dark-selected-hover-bg: #163750;
+  --dark-accent-ring: rgba(0, 229, 255, .36);
+  --dark-accent-shadow: rgba(0, 229, 255, .22);
+  --dark-checkmark-icon: url('data:image/svg+xml,%3csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 8 8\'%3e%3cpath fill=\'%23040814\' d=\'M6.564.75l-3.59 3.612-1.538-1.55L0 4.26 2.974 7.25 8 2.193z\'/%3e%3c/svg%3e');
+  --blur-radius-light: 10px;
+  --blur-opacity-light: .5;
+  --blur-radius-dark: 10px;
+  --blur-opacity-dark: .55;
+  --blur-radius: var(--blur-radius-light);
+  --blur-opacity: var(--blur-opacity-light);
+  .theme-palette(light);
+
+  // Legacy LuCI colour API. New component rules use semantic tokens only.
+  --header-color: var(--text-on-accent);
+  --menu-bg-color: var(--surface-raised);
+  --red: var(--danger);
+  --orange: @orange-500;
+  --yellow: var(--error-text);
+  --green: var(--success);
+  --teal: var(--info);
+  --white: @neutral-0;
+  --gray: var(--muted-text);
+  --gray-dark: var(--text-strong);
+  --lighter: var(--surface-contrast);
+  --light: @neutral-400;
+  --dark: var(--code-text);
+  --default: var(--overlay-text);
+  --darker: var(--media-bg);
+
+  // Non-colour resources are shared between appearances.
+  --font-family-sans-serif: "Plus Jakarta Sans", "Google Sans", "Microsoft Yahei", "WenQuanYi Micro Hei", sans-serif, "Helvetica Neue", Helvetica;
+  --chevron-down-icon: url("../icon/chevron-down.svg");
+  --chevron-right-icon: url("../icon/chevron-right.svg");
+  --dropdown-arrow-icon: var(--chevron-down-icon);
+
+  // Lightweight GPU-friendly motion curves and durations.
+  --motion-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --motion-ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --motion-duration-fast: 150ms;
+  --motion-duration-base: 220ms;
+}
+
+.dark-palette() {
+  color-scheme: dark;
+  .theme-palette(dark);
+  --blur-radius: var(--blur-radius-dark);
+  --blur-opacity: var(--blur-opacity-dark);
+}
+
+:root[data-nuxlab-mode="dark"] {
+  .dark-palette();
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-nuxlab-mode="light"]):not([data-nuxlab-mode="dark"]) {
+    .dark-palette();
+  }
+}

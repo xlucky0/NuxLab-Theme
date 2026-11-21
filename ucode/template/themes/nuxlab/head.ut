@@ -32,6 +32,10 @@
 	let blur_radius_dark = '10';
 	let blur_opacity = '0.5';
 	let blur_opacity_dark = '0.5';
+	let fx_mode = 'full';
+	let preset = 'aurora';
+	let rgb_mode = '1';
+	let rgb_speed = 'normal';
 	const has_nuxlab_config = access('/etc/config/nuxlab');
 	let dark_settings = {};
 	if (has_nuxlab_config) {
@@ -43,6 +47,18 @@
 		blur_radius_dark = validNumber(cfg.get_first('nuxlab', 'global', 'blur_dark'), blur_radius_dark, 100);
 		blur_opacity = validNumber(cfg.get_first('nuxlab', 'global', 'transparency'), blur_opacity, 1);
 		blur_opacity_dark = validNumber(cfg.get_first('nuxlab', 'global', 'transparency_dark'), blur_opacity_dark, 1);
+		let configured_fx = cfg.get_first('nuxlab', 'global', 'fx_mode');
+		let configured_preset = cfg.get_first('nuxlab', 'global', 'preset');
+		let configured_rgb = cfg.get_first('nuxlab', 'global', 'rgb_mode');
+		let configured_speed = cfg.get_first('nuxlab', 'global', 'rgb_speed');
+		if (configured_fx == 'full' || configured_fx == 'saver' || configured_fx == 'off')
+			fx_mode = configured_fx;
+		if (configured_preset == 'aurora' || configured_preset == 'cyber' || configured_preset == 'mono')
+			preset = configured_preset;
+		if (configured_rgb == '0' || configured_rgb == '1')
+			rgb_mode = configured_rgb;
+		if (configured_speed == 'off' || configured_speed == 'slow' || configured_speed == 'normal' || configured_speed == 'fast')
+			rgb_speed = configured_speed;
 		let configured_mode = cfg.get_first('nuxlab', 'global', 'mode');
 		if (configured_mode == 'normal' || configured_mode == 'dark' || configured_mode == 'light')
 			mode = configured_mode;
@@ -58,7 +74,7 @@
 
 -%}
 <!DOCTYPE html>
-<html lang="{{ dispatcher.lang }}" data-nuxlab-mode="{{ mode }}">
+<html lang="{{ dispatcher.lang }}" data-nuxlab-mode="{{ mode }}" data-nuxlab-preset="{{ preset }}" data-nuxlab-fx="{{ fx_mode }}" data-nuxlab-fx-effective="{{ fx_mode }}" data-nuxlab-rgb="{{ rgb_mode }}" data-nuxlab-rgb-speed="{{ rgb_speed }}">
 
 <head>
 	{% if (!is_login): %}
@@ -99,6 +115,7 @@
 			--blur-opacity-light:{{ blur_opacity }};
 			--blur-radius-dark:{{ blur_radius_dark }}px;
 			--blur-opacity-dark:{{ blur_opacity_dark }};
+			--nuxlab-rgb-mode:{{ rgb_mode }};
 		}
 	</style>
 	<!-- Stylesheets -->

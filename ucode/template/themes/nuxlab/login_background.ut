@@ -63,6 +63,7 @@
 
 	const bgArry = selectBackground(media + '/background/');
 %}
+	<div class="nuxlab-fx-background" aria-hidden="true"></div>
 	{% if ( bgArry.backgroundType == "Video" ): %}
 	<!-- Video Player Start -->
 	<div class="video">

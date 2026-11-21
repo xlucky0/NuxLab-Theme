@@ -13,3 +13,19 @@
 | APK v3（`apk-tools 3.x`） | `.apk` |
 
 预览版仅提供 APK v3，OPKG/IPK 固件不支持。/ Preview releases provide APK v3 only; OPKG/IPK firmware is not supported.
+
+Preview APKs are signed with the same project key. Compare the SHA256 fingerprint in these release notes, install the key, then install without `--allow-untrusted`:
+
+```sh
+wget -qO /tmp/install-key.sh https://github.com/xlucky0/NuxLab-Theme/releases/latest/download/install-key.sh &&
+  sh /tmp/install-key.sh <SHA256-from-this-release>
+apk add ./luci-theme-nuxlab-*.apk
+```
+
+预览版 APK 使用项目签名密钥。请核对本发行说明中的 SHA256 指纹，安装公钥后再安装，勿使用 `--allow-untrusted`：
+
+```sh
+wget -qO /tmp/install-key.sh https://github.com/xlucky0/NuxLab-Theme/releases/latest/download/install-key.sh &&
+  sh /tmp/install-key.sh <本次发行的SHA256>
+apk add ./luci-theme-nuxlab-*.apk
+```

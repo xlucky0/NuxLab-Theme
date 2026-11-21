@@ -23,7 +23,12 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y cmake libjson-c-dev libmd-dev bsdextrautils
-          npm install --global less@4.1.3
+          npm ci
+
+      - name: Build CSS and verify committed output
+        run: |
+          npm run build:css
+          git diff --exit-code -- htdocs/luci-static/nuxlab/css/cascade.css
 
       - name: Build Ucode matching OpenWrt 25.12
         run: |
@@ -39,4 +44,5 @@ jobs:
 
       - name: Check templates, scripts, styles, and behavior
         run: |
-          UCODE_BIN="$RUNNER_TEMP/nuxlab-ucode/build/ucode" sh .github/scripts/check_theme.sh
+          PATH="$PWD/node_modules/.bin:$PATH" \
+            UCODE_BIN="$RUNNER_TEMP/nuxlab-ucode/build/ucode" sh .github/scripts/check_theme.sh

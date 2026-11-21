@@ -41,6 +41,12 @@ class UpdateBranchTests(unittest.TestCase):
         (self.site / '404.html').write_text('<title>Not found</title>\n')
         (self.site / '_headers').write_text('/updates/stable.json\n  Cache-Control: max-age=300\n')
         (self.site / 'updates/stable.json').write_text(json.dumps({'schema': 1, 'tag': 'v3.1.0', 'notes': '更新'}))
+        (self.site / 'feed').mkdir()
+        (self.site / 'feed/packages.adb').write_bytes(b'signed index')
+        (self.site / 'feed/nuxlab-apk.pem').write_text('public key\n')
+        (self.site / 'feed/install-key.sh').write_text('#!/bin/sh\n')
+        (self.site / 'feed/luci-theme-nuxlab-3.1.0-r1.apk').write_bytes(b'signed package')
+        (self.site / 'feed/luci-app-nuxlab-3.1.0-r1.apk').write_bytes(b'signed migration package')
 
     def run_git(self, *arguments):
         return subprocess.check_output(['git', *arguments], stderr=subprocess.PIPE).decode()
@@ -125,6 +131,11 @@ class UpdateBranchTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.publish()
         extra.unlink()
+        package = self.site / 'feed/untrusted.apk'
+        package.write_bytes(b'not a NuxLab package')
+        with self.assertRaises(ValueError):
+            self.publish()
+        package.unlink()
         manifest = self.site / 'updates/stable.json'
         target = self.directory / 'external.json'
         manifest.rename(target)

@@ -44,15 +44,53 @@ Users on v3.0.0 or earlier must install v3.1.3 manually once to get online updat
 
 ## Install
 
-**In 3.0, the theme and configuration features are one package: `luci-theme-nuxlab`. Fresh installations need only this package.** Download the APK v3 package from [Releases](https://github.com/xlucky0/NuxLab-Theme/releases). Releases are for firmware using APK v3 (`apk-tools 3.x`); OPKG/IPK firmware is not supported.
+**In 3.0, the theme and configuration features are one package: `luci-theme-nuxlab`. Fresh installations need only this package.** Download the APK v3 package from [Releases](https://github.com/xlucky0/NuxLab-Theme/releases). Releases are for firmware using APK v3 (`apk-tools 3.x`); OPKG/IPK firmware is not supported. Packages and the repository index are signed.
 
 | Package manager | Package | Install |
 | --- | --- | --- |
-| APK v3 (`apk-tools 3.x`) | `.apk` | `apk add --allow-untrusted ./luci-theme-nuxlab-*.apk` |
+| APK v3 (`apk-tools 3.x`) | `.apk` | `apk add ./luci-theme-nuxlab-*.apk` |
 
-Run `apk update` first. APK v2 cannot read these APK packages.
+Before installing, compare the SHA256 fingerprint of `nuxlab-apk.pem` with the value in the release notes, then install the public key:
+
+```sh
+wget -qO /tmp/install-key.sh https://github.com/xlucky0/NuxLab-Theme/releases/latest/download/install-key.sh && sh /tmp/install-key.sh <SHA256-from-release-notes>
+```
+
+The helper verifies the downloaded key fingerprint before placing it in `/etc/apk/keys/`. Then install local packages without `--allow-untrusted`:
+
+```sh
+apk add ./luci-theme-nuxlab-*.apk
+```
+
+Alternatively, add the signed feed and install from it:
+
+```sh
+printf '%s\n' 'https://xlucky0.github.io/NuxLab-Theme/feed' \
+  > /etc/apk/repositories.d/customfeeds.list
+apk update
+apk add luci-theme-nuxlab
+```
+
+To install the old-name migration package when upgrading from the standalone `luci-app-nuxlab`, install the matching `luci-app-nuxlab` package first, then the theme in a separate command. APK v2 cannot read these APK packages.
 
 For translations, install the matching `luci-i18n-nuxlab-<language>.apk` package from the same release.
+
+**Key safety:** keep `OPENWRT_PRIV_KEY` private. If it is lost or exposed, rotate the signing key and have users install the replacement public key before updating.
+
+### Release signing setup (maintainers)
+
+Generate a P-256 key pair locally:
+
+```sh
+openssl ecparam -name prime256v1 -genkey -noout -out key.pem
+openssl ec -in key.pem -pubout -out pub.pem
+```
+
+In the repository's **Settings → Secrets and variables → Actions**, add the full PEM contents as the `OPENWRT_PRIV_KEY` and `OPENWRT_PUB_KEY` Actions secrets. Never commit either key. Release CI verifies that they match, signs every APK while packaging with the OpenWrt 25.12.5 SDK, and signs `packages.adb`. CI installs the same noarch packages in official OpenWrt 25.12.5 x86_64 and aarch64 root filesystems. It also checks that installs without a key or with a different key are rejected.
+
+On OpenWrt, after installing the public key, local package upload can be tested at **System → Software → Upload Package**. Select the signed `.apk` and install it without allowing untrusted packages. This LuCI upload interaction is a manual device test; CI uses `apk add` directly.
+
+The APK signing key is not an OPKG/usign key. This repository currently publishes APK v3 only; IPK signing and OpenWrt 24.10 builds are not enabled.
 
 Select **NuxLab** under **System → System → Language and Style → Design**.
 
@@ -63,12 +101,12 @@ This applies only when the old standalone configuration plugin is installed. Oth
 
 The settings page, colors, backgrounds and branding are all included in the theme. The release's `luci-app-nuxlab` is an **empty migration package using the old package name**. It preserves existing settings and hands its files over to the theme.
 
-1. Download both `luci-app-nuxlab` and `luci-theme-nuxlab` APK v3 packages from the **same release in the theme repository**.
+1. Install the release public key as described above, then download both `luci-app-nuxlab` and `luci-theme-nuxlab` APK v3 packages from the **same release in the theme repository**.
 2. Put both files in one directory on compatible APK v3 firmware and open a terminal there. **Do not uninstall the old plugin first.** Run the second command only after the first succeeds.
 
 ```sh
-apk add --allow-untrusted ./luci-app-nuxlab-*.apk
-apk add --allow-untrusted ./luci-theme-nuxlab-*.apk
+apk add ./luci-app-nuxlab-*.apk
+apk add ./luci-theme-nuxlab-*.apk
 ```
 
 The first command replaces the old plugin with the empty migration package. The second installs the integrated theme and restores your settings. Continue configuring it under **System → NuxLab Config**.
@@ -77,7 +115,17 @@ The first command replaces the old plugin with the empty migration package. The 
 
 ## Customize
 
-Open **System → NuxLab Config** for login layouts, colors, glass effects, wallpapers and branding. The header's appearance button switches between **Light mode**, **Dark mode** and **Follow system**; the choice also applies to the login page.
+Open **System → NuxLab Config** for login layouts, colors, glass effects, wallpapers and branding. Choose the **Aurora**, **Cyber RGB** or **Mono Glass** visual preset; control animation with `fx_mode=full|saver|off`, RGB with `rgb_mode=0|1`, and hue speed with `rgb_speed=off|slow|normal|fast` (30/14/6-second cycles for slow/normal/fast). For example:
+
+```sh
+uci set nuxlab.@global[0].fx_mode='full'
+uci set nuxlab.@global[0].rgb_mode='1'
+uci set nuxlab.@global[0].rgb_speed='fast'
+uci set nuxlab.@global[0].preset='aurora'
+uci commit nuxlab
+```
+
+Use `fx_mode=saver` for a reduced, slow background effect or `fx_mode=off` to disable FX. Reduced-motion preferences force FX off; low-memory, low-core or slow-frame devices automatically fall back to saver. The header's appearance button switches between **Light mode**, **Dark mode** and **Follow system**; the choice also applies to the login page.
 
 Local image and video backgrounds are supported, along with Bing, Unsplash and Wallhaven wallpapers. Unsplash requires an API access key. Browser icons and login logos accept PNG files, 16–1024 pixels per side, up to 1 MiB; browser icons must be square.
 

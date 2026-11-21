@@ -155,6 +155,36 @@ return view.extend({
 			}
 		};
 
+		o = s.option(form.ListValue, 'fx_mode', _('Visual effects'),
+			_('Choose the motion and visual detail level for NuxLab backgrounds and cards.'));
+		o.value('full', _('Full'));
+		o.value('saver', _('Power saver'));
+		o.value('off', _('Off'));
+		o.default = 'full';
+		o.rmempty = false;
+
+		o = s.option(form.ListValue, 'rgb_mode', _('RGB mode'));
+		o.value('1', _('On'));
+		o.value('0', _('Off'));
+		o.default = '1';
+		o.rmempty = false;
+
+		o = s.option(form.ListValue, 'rgb_speed', _('RGB speed'),
+			_('Hue cycle duration: 30, 14, or 6 seconds.'));
+		o.value('off', _('Off'));
+		o.value('slow', _('Slow (30s)'));
+		o.value('normal', _('Normal (14s)'));
+		o.value('fast', _('Fast (6s)'));
+		o.default = 'normal';
+		o.rmempty = false;
+
+		o = s.option(form.ListValue, 'preset', _('Color preset'));
+		o.value('aurora', _('Aurora'));
+		o.value('cyber', _('Cyber RGB'));
+		o.value('mono', _('Mono Glass'));
+		o.default = 'aurora';
+		o.rmempty = false;
+
 		o = s.option(form.ListValue, 'online_wallpaper', _('Wallpaper source'));
 		o.value('none', _('Built-in'));
 		o.value('bing', _('Bing'));
@@ -270,6 +300,12 @@ return view.extend({
 			if (this.map.readonly)
 				return Promise.resolve();
 			return this.map.save(null, true).then(function() {
+				window.dispatchEvent(new CustomEvent('nuxlab-visual-settings-saved', { detail: {
+					fx_mode: uci.get('nuxlab', 'global', 'fx_mode') || 'full',
+					rgb_mode: uci.get('nuxlab', 'global', 'rgb_mode') || '1',
+					rgb_speed: uci.get('nuxlab', 'global', 'rgb_speed') || 'normal',
+					preset: uci.get('nuxlab', 'global', 'preset') || 'aurora'
+				} }));
 				return ui.changes.apply(true);
 			}).catch(function(e) {
 				ui.addNotification(null, E('p', e.message));

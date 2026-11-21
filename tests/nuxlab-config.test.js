@@ -145,6 +145,22 @@ test('login style selector previews supported values and falls back for old conf
 	}
 });
 
+test('visual UCI selectors expose the validated values and defaults', async () => {
+	const state = fixture();
+	await state.render();
+	for (const [name, values, fallback] of [
+		[ 'fx_mode', [ 'full', 'saver', 'off' ], 'full' ],
+		[ 'rgb_mode', [ '0', '1' ], '1' ],
+		[ 'rgb_speed', [ 'off', 'slow', 'normal', 'fast' ], 'normal' ],
+		[ 'preset', [ 'aurora', 'cyber', 'mono' ], 'aurora' ]
+	]) {
+		const option = state.button(name);
+		assert.deepEqual(Object.keys(option.choices), values);
+		assert.equal(option.default, fallback);
+		assert.equal(option.rmempty, false);
+	}
+});
+
 test('failed saves are reported and never applied', async () => {
 	const state = fixture({ saveTask: Promise.reject(new Error('validation failed')) });
 	await state.render();

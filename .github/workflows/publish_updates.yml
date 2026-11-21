@@ -75,7 +75,10 @@ jobs:
           RELEASE_TAG: ${{ steps.release.outputs.tag }}
         run: |
           gh release download "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" \
-            --pattern 'luci-theme-nuxlab*' --pattern 'luci-i18n-nuxlab-*' --dir published-packages
+            --pattern 'luci-theme-nuxlab*' --pattern 'luci-app-nuxlab*' \
+            --pattern 'luci-i18n-nuxlab-*' --pattern 'packages.adb' \
+            --pattern 'nuxlab-apk.pem' --pattern 'install-key.sh' \
+            --dir published-packages
 
       - name: Verify release assets and generate the shared Pages artifact
         if: steps.release.outputs.publish == 'true'

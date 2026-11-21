@@ -23,6 +23,8 @@ The older `does not support ucode template precompilation` log line is LuCI's sk
 
 Release CI builds signed APK v3 packages with the OpenWrt 25.12.5 SDK and uploads the theme, migration and translation APKs, signed `packages.adb`, `nuxlab-apk.pem`, and `install-key.sh` to each GitHub Release. The signed packages and index are also published under `/feed/` on GitHub Pages. The SDK's `apk adbsign` path rewrites an existing APK in place and has been observed to corrupt packages, so CI signs packages at creation time with the verified `apk mkpkg --sign-key` option instead; the index uses `apk mkndx --sign-key`. The public/private pair must match. OPKG/IPK packages and usign signing are not currently published. Ucode templates ship as source to avoid tying packages to one runtime's bytecode format.
 
+Pull requests also build the theme with the same OpenWrt SDK and attach `nuxlab-theme-preview-unsigned` for seven days. It is an unsigned test artifact only; use a tagged release for signed packages and never treat the preview APK as trusted.
+
 Translations use `PKG_PO_VERSION` to follow the theme release, including `-r<revision>` for APK. CI reads each translation APK's internal package metadata and blocks artifact upload and publication if the version is wrong.
 
 ### Release signing

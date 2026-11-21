@@ -1,0 +1,154 @@
+name: Build preview APK
+
+on:
+  pull_request:
+    branches: [main, master, '3.0']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: preview-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-theme:
+    name: Build unsigned OpenWrt 25.12 theme APK
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential bison clang curl file flex g++ g++-multilib \
+            gawk gcc-multilib gettext git libncurses-dev libssl-dev python3 \
+            python3-setuptools python3-venv rsync unzip wget xz-utils \
+            zlib1g-dev zstd
+
+      - name: Resolve OpenWrt SDK
+        id: sdk
+        run: |
+          sdk_base_url="https://downloads.openwrt.org/releases/25.12.5/targets/x86/64"
+          sdk_pattern='openwrt-sdk-25.12.5-x86-64_.*Linux-x86_64.tar.zst'
+          checksums="$(mktemp)"
+          trap 'rm -f "$checksums"' EXIT
+          curl --http1.1 -fsSL --retry 5 --retry-all-errors \
+            --connect-timeout 30 --max-time 120 \
+            "$sdk_base_url/sha256sums" -o "$checksums"
+
+          sdk_line="$(grep -E "[[:space:]]+\\*?${sdk_pattern}$" "$checksums" | head -n 1)"
+          if [ -z "$sdk_line" ]; then
+            echo "::error::Unable to find the OpenWrt 25.12.5 SDK."
+            exit 1
+          fi
+
+          sdk_sha256="$(printf '%s\n' "$sdk_line" | awk '{print $1}')"
+          sdk_file="$(printf '%s\n' "$sdk_line" | awk '{print $2}' | sed 's/^\*//')"
+          echo "sdk_file=$sdk_file" >> "$GITHUB_OUTPUT"
+          echo "sdk_sha256=$sdk_sha256" >> "$GITHUB_OUTPUT"
+          echo "sdk_cache_key=openwrt-sdk-apk-$sdk_sha256" >> "$GITHUB_OUTPUT"
+
+      - name: Cache OpenWrt SDK archive
+        uses: actions/cache@v6
+        with:
+          path: .cache/openwrt-sdk/${{ steps.sdk.outputs.sdk_file }}
+          key: ${{ steps.sdk.outputs.sdk_cache_key }}
+
+      - name: Download and verify OpenWrt SDK
+        env:
+          SDK_FILE: ${{ steps.sdk.outputs.sdk_file }}
+          SDK_SHA256: ${{ steps.sdk.outputs.sdk_sha256 }}
+        run: |
+          mkdir -p .cache/openwrt-sdk
+          sdk_archive=".cache/openwrt-sdk/$SDK_FILE"
+          sdk_partial="${sdk_archive}.part"
+          trap 'rm -f "$sdk_partial"' EXIT
+
+          if [ -f "$sdk_archive" ] &&
+            ! printf '%s  %s\n' "$SDK_SHA256" "$sdk_archive" | sha256sum -c -; then
+            rm -f "$sdk_archive"
+          fi
+          if [ ! -f "$sdk_archive" ]; then
+            curl --http1.1 -fL --retry 5 --retry-all-errors \
+              --connect-timeout 30 --max-time 1800 \
+              "https://downloads.openwrt.org/releases/25.12.5/targets/x86/64/$SDK_FILE" \
+              -o "$sdk_partial"
+            printf '%s  %s\n' "$SDK_SHA256" "$sdk_partial" | sha256sum -c -
+            mv "$sdk_partial" "$sdk_archive"
+          fi
+
+          mkdir -p sdk
+          tar --zstd -xf "$sdk_archive" -C sdk --strip-components=1
+
+      - name: Prepare feeds and theme package
+        env:
+          RELEASE_NUMBER: ${{ github.run_number }}
+          NUXLAB_UPDATE_PRIMARY_URL: ${{ vars.NUXLAB_UPDATE_PRIMARY_URL }}
+          NUXLAB_UPDATE_FALLBACK_URL: ${{ vars.NUXLAB_UPDATE_FALLBACK_URL }}
+        run: |
+          cd sdk
+          cp feeds.conf.default feeds.conf
+          ./scripts/feeds update -a
+          ./scripts/feeds install -a
+          mkdir -p package/luci-theme-nuxlab
+
+          rsync -a --delete \
+            --exclude='.git' \
+            --exclude='sdk' \
+            --exclude='artifacts' \
+            --exclude='/compat' \
+            --exclude='/preview' \
+            --exclude='/node_modules' \
+            --exclude='/dist' \
+            --exclude='/package.json' \
+            --exclude='/package-lock.json' \
+            --exclude='/tsconfig.json' \
+            --exclude='/vite.config.ts' \
+            --exclude='/index.html' \
+            --exclude='/metadata.json' \
+            "$GITHUB_WORKSPACE/" package/luci-theme-nuxlab/
+
+          python3 ../.github/scripts/generate_update_site.py sources \
+            --primary "$NUXLAB_UPDATE_PRIMARY_URL" \
+            --fallback "${NUXLAB_UPDATE_FALLBACK_URL:-https://xlucky0.github.io/NuxLab-Theme/updates/stable.json}" \
+            --output package/luci-theme-nuxlab/root/usr/share/nuxlab/update-sources.json
+          sed -i -E "s/^(PKG_RELEASE):=.*/\\1:=${RELEASE_NUMBER}/" \
+            package/luci-theme-nuxlab/Makefile
+
+          cat > .config <<'EOF'
+          CONFIG_ALL_NONSHARED=n
+          CONFIG_ALL_KMODS=n
+          CONFIG_ALL=n
+          CONFIG_AUTOREMOVE=n
+          CONFIG_PACKAGE_luci-theme-nuxlab=m
+          EOF
+          sed -i 's/^[[:space:]]*//' .config
+          make defconfig
+          grep -Fxq 'CONFIG_PACKAGE_luci-theme-nuxlab=m' .config
+
+      - name: Compile theme APK
+        working-directory: sdk
+        run: make package/luci-theme-nuxlab/compile -j"$(nproc)" V=s
+
+      - name: Verify architecture and prepare preview artifact
+        run: |
+          mkdir -p artifacts
+          find sdk/bin/packages -type f -name 'luci-theme-nuxlab-*.apk' \
+            -exec cp -v {} artifacts/ \;
+          python3 .github/scripts/check_apk_architecture.py \
+            --directory artifacts \
+            --apk-tool "$GITHUB_WORKSPACE/sdk/staging_dir/host/bin/apk"
+          printf '%s\n' \
+            'UNSIGNED PREVIEW ONLY. This package is not a trusted release and is not for production installation.' \
+            > artifacts/UNSIGNED-PREVIEW.txt
+
+      - name: Upload preview APK
+        uses: actions/upload-artifact@v7
+        with:
+          name: nuxlab-theme-preview-unsigned
+          path: artifacts/*
+          if-no-files-found: error
+          retention-days: 7

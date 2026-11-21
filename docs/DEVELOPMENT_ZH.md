@@ -23,6 +23,8 @@ make package/luci-theme-nuxlab/compile V=s
 
 发行 CI 使用 OpenWrt 25.12.5 SDK 构建已签名 APK v3，并在每个版本标签对应的 GitHub Release 上传主题、迁移及翻译 APK、签名的 `packages.adb`、`nuxlab-apk.pem` 和 `install-key.sh`。已签名包及索引也发布在 GitHub Pages 的 `/feed/`。SDK 的 `apk adbsign` 会原位重写 APK，实测会损坏包，因此 CI 在打包时使用已验证的 `apk mkpkg --sign-key` 签名；索引通过 `apk mkndx --sign-key` 签名。发布前会验证公私钥匹配。目前不发布 OPKG/IPK，也未启用 usign 签名。Ucode 模板保留源码，避免绑定某个运行时的字节码格式。
 
+Pull request 也会使用相同的 OpenWrt SDK 构建主题，并保留 7 天的 `nuxlab-theme-preview-unsigned` 产物。该 APK 未签名，只供测试；签名可信的安装包必须来自正式版本标签，不能将预览包视为可信发布包。
+
 语言包通过 `PKG_PO_VERSION` 跟随主题发行版本，APK 包含 `-r<修订号>`。发布前会逐个读取语言 APK 内部元数据，版本不符时阻止上传和发布。
 
 ### 发行签名

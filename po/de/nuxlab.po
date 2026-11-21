@@ -551,3 +551,51 @@ msgstr "Hintergrundvideo pausieren"
 #: ucode/template/themes/nuxlab/header.ut
 msgid "Skip to content"
 msgstr "Zum Inhalt springen"
+
+msgid "Visual effects"
+msgstr "Visual effects"
+
+msgid "Choose the motion and visual detail level for NuxLab backgrounds and cards."
+msgstr "Choose the motion and visual detail level for NuxLab backgrounds and cards."
+
+msgid "Full"
+msgstr "Full"
+
+msgid "Power saver"
+msgstr "Power saver"
+
+msgid "Off"
+msgstr "Off"
+
+msgid "RGB mode"
+msgstr "RGB mode"
+
+msgid "On"
+msgstr "On"
+
+msgid "RGB speed"
+msgstr "RGB speed"
+
+msgid "Hue cycle duration: 30, 14, or 6 seconds."
+msgstr "Hue cycle duration: 30, 14, or 6 seconds."
+
+msgid "Slow (30s)"
+msgstr "Slow (30s)"
+
+msgid "Normal (14s)"
+msgstr "Normal (14s)"
+
+msgid "Fast (6s)"
+msgstr "Fast (6s)"
+
+msgid "Color preset"
+msgstr "Color preset"
+
+msgid "Aurora"
+msgstr "Aurora"
+
+msgid "Cyber RGB"
+msgstr "Cyber RGB"
+
+msgid "Mono Glass"
+msgstr "Mono Glass"

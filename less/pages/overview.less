@@ -214,6 +214,8 @@
     }
 
     dd {
+      display: flex;
+      align-items: center;
       margin: 0;
       margin-inline-start: auto;
       max-width: 100%;
@@ -223,6 +225,22 @@
       font-variant-numeric: tabular-nums;
       white-space: normal;
       overflow-wrap: anywhere;
+
+      svg {
+        flex: 0 0 3rem;
+        width: 3rem;
+        height: .85rem;
+        margin-inline-start: .4rem;
+        overflow: visible;
+
+        polyline {
+          fill: none;
+          stroke: var(--fx-color-a);
+          stroke-width: 2;
+          stroke-linecap: round;
+          stroke-linejoin: round;
+        }
+      }
     }
   }
 }

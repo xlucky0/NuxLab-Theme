@@ -46,6 +46,10 @@ jobs:
     name: Build ${{ matrix.package_format }} packages
     needs: [checks, metadata]
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    outputs:
+      apk_fingerprint: ${{ steps.sign-apk-artifacts.outputs.fingerprint }}
     strategy:
       fail-fast: false
       matrix:
@@ -233,7 +237,8 @@ jobs:
           luci_mk = Path('feeds/luci/luci.mk').read_text()
           supported = set(re.findall(r'^LUCI_LANG\.([A-Za-z0-9_]+)=', luci_mk, re.M))
           aliases = dict(re.findall(r'^LUCI_LC_ALIAS\.([A-Za-z0-9_]+)=(\S+)', luci_mk, re.M))
-          languages = sorted({po.parent.name for po in Path('package/luci-theme-nuxlab/po').glob('*/*.po')})
+          languages = sorted({po.parent.name for po in Path('package/luci-theme-nuxlab/po').glob('*/*.po')
+                              if po.parent.name != 'en'})
 
           if not languages:
               raise SystemExit('::error::No NuxLab configuration translations found.')
@@ -260,7 +265,40 @@ jobs:
 
       - name: Compile packages
         working-directory: sdk
+        env:
+          OPENWRT_PRIV_KEY: ${{ secrets.OPENWRT_PRIV_KEY }}
+          OPENWRT_PUB_KEY: ${{ secrets.OPENWRT_PUB_KEY }}
         run: |
+          set -eu
+          umask 077
+          key_dir="${RUNNER_TEMP}/nuxlab-apk-keys"
+          private_key="${key_dir}/private.pem"
+          public_key="${key_dir}/public.pem"
+          mkdir -p "${key_dir}"
+          trap 'rm -rf "${key_dir}"' EXIT HUP INT TERM
+          : "${OPENWRT_PRIV_KEY:?OPENWRT_PRIV_KEY is required for signed APK releases}"
+          : "${OPENWRT_PUB_KEY:?OPENWRT_PUB_KEY is required for signed APK releases}"
+          printf '%s\n' "${OPENWRT_PRIV_KEY}" > "${private_key}"
+          printf '%s\n' "${OPENWRT_PUB_KEY}" > "${public_key}"
+          chmod 600 "${private_key}" "${public_key}"
+
+          openssl pkey -in "${private_key}" -pubout -outform DER -out "${key_dir}/derived.der"
+          openssl pkey -pubin -in "${public_key}" -outform DER -out "${key_dir}/provided.der"
+          cmp "${key_dir}/derived.der" "${key_dir}/provided.der"
+
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path('include/package-pack.mk')
+          source = path.read_text()
+          needle = '  --files "$$(IDIR_$(1))" \\\n'
+          replacement = '  $$(if $$(APK_SIGN_KEY),--sign-key "$$(APK_SIGN_KEY)") \\\n' + needle
+          if source.count(needle) != 1:
+              raise SystemExit('Unable to safely add APK signing to the SDK package recipe.')
+          path.write_text(source.replace(needle, replacement))
+          PY
+
+          export APK_SIGN_KEY="${private_key}"
           make package/luci-theme-nuxlab/clean package/luci-app-nuxlab/clean
           make package/luci-theme-nuxlab/compile -j"$(nproc)" V=s
           make package/luci-app-nuxlab/compile -j"$(nproc)" V=s
@@ -301,6 +339,47 @@ jobs:
             exit 1
           fi
 
+      - name: Sign repository index and prepare public assets
+        id: sign-apk-artifacts
+        env:
+          OPENWRT_PRIV_KEY: ${{ secrets.OPENWRT_PRIV_KEY }}
+          OPENWRT_PUB_KEY: ${{ secrets.OPENWRT_PUB_KEY }}
+          PACKAGE_FORMAT: ${{ matrix.package_format }}
+        run: |
+          set -eu
+          umask 077
+          key_dir="${RUNNER_TEMP}/nuxlab-apk-index-keys"
+          private_key="${key_dir}/private.pem"
+          public_key="${key_dir}/public.pem"
+          mkdir -p "${key_dir}"
+          trap 'rm -rf "${key_dir}"' EXIT HUP INT TERM
+          : "${OPENWRT_PRIV_KEY:?OPENWRT_PRIV_KEY is required for signed APK releases}"
+          : "${OPENWRT_PUB_KEY:?OPENWRT_PUB_KEY is required for signed APK releases}"
+          printf '%s\n' "${OPENWRT_PRIV_KEY}" > "${private_key}"
+          printf '%s\n' "${OPENWRT_PUB_KEY}" > "${public_key}"
+          chmod 600 "${private_key}" "${public_key}"
+          openssl pkey -in "${private_key}" -pubout -outform DER -out "${key_dir}/derived.der"
+          openssl pkey -pubin -in "${public_key}" -outform DER -out "${key_dir}/provided.der"
+          cmp "${key_dir}/derived.der" "${key_dir}/provided.der"
+
+          apk_tool="${GITHUB_WORKSPACE}/sdk/staging_dir/host/bin/apk"
+          artifact_dir="artifacts/${PACKAGE_FORMAT}"
+          mkdir -p "${artifact_dir}"
+          cp "${public_key}" "${artifact_dir}/nuxlab-apk.pem"
+          cp install-key.sh "${artifact_dir}/install-key.sh"
+          chmod 644 "${artifact_dir}/nuxlab-apk.pem" "${artifact_dir}/install-key.sh"
+
+          "${apk_tool}" --keys-dir "${key_dir}" mkndx \
+            --sign-key "${private_key}" \
+            --output "${artifact_dir}/packages.adb" \
+            "${artifact_dir}"/*.apk
+          "${apk_tool}" --keys-dir "${key_dir}" verify "${artifact_dir}"/*.apk
+          "${apk_tool}" --keys-dir "${key_dir}" verify "${artifact_dir}/packages.adb"
+
+          fingerprint="$(sha256sum "${artifact_dir}/nuxlab-apk.pem" | awk '{print $1}')"
+          printf 'fingerprint=%s\n' "${fingerprint}" >> "${GITHUB_OUTPUT}"
+          printf 'APK public key SHA256: `%s`\n' "${fingerprint}" >> "${GITHUB_STEP_SUMMARY}"
+
       - name: Verify translation package versions
         env:
           PACKAGE_FORMAT: ${{ matrix.package_format }}
@@ -313,6 +392,14 @@ jobs:
             --expected-version "${EXPECTED_VERSION}" \
             --apk-tool "${GITHUB_WORKSPACE}/sdk/staging_dir/host/bin/apk"
 
+      - name: Verify packages are architecture independent
+        env:
+          PACKAGE_FORMAT: ${{ matrix.package_format }}
+        run: |
+          python3 .github/scripts/check_apk_architecture.py \
+            --directory "artifacts/${PACKAGE_FORMAT}" \
+            --apk-tool "${GITHUB_WORKSPACE}/sdk/staging_dir/host/bin/apk"
+
       - name: Upload build artifacts
         uses: actions/upload-artifact@v7
         with:
@@ -323,7 +410,11 @@ jobs:
   release:
     name: Publish GitHub Release
     runs-on: ubuntu-24.04
-    needs: [build, metadata]
+    needs: [build, metadata, verify-apk]
+    permissions:
+      contents: write
+    outputs:
+      apk_fingerprint: ${{ needs.build.outputs.apk_fingerprint }}
     steps:
       - name: Checkout release installation notes
         uses: actions/checkout@v7
@@ -335,17 +426,74 @@ jobs:
           pattern: packages-*
           merge-multiple: true
 
+      - name: Add the APK key fingerprint to release notes
+        env:
+          APK_FINGERPRINT: ${{ needs.build.outputs.apk_fingerprint }}
+          PRERELEASE: ${{ needs.metadata.outputs.prerelease }}
+        run: |
+          body=".github/release-installation.md"
+          if [ "${PRERELEASE}" = "true" ]; then
+            body=".github/release-preview.md"
+          fi
+          cp "${body}" release-body.md
+          {
+            printf '\n## APK signing key\n\n'
+            printf 'SHA256 of `nuxlab-apk.pem`: `%s`\n' "${APK_FINGERPRINT}"
+            printf '\nVerify this fingerprint before installing the public key on a router.\n'
+          } >> release-body.md
+
       - name: Publish release
         uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ github.ref_name }}
           name: ${{ github.ref_name }}
-          body_path: ${{ needs.metadata.outputs.prerelease == 'true' && '.github/release-preview.md' || '.github/release-installation.md' }}
+          body_path: release-body.md
           prerelease: ${{ needs.metadata.outputs.prerelease == 'true' }}
           make_latest: ${{ needs.metadata.outputs.prerelease == 'true' && 'false' || 'true' }}
           generate_release_notes: ${{ needs.metadata.outputs.prerelease == 'false' }}
           fail_on_unmatched_files: true
           files: release-assets/*
+
+  verify-apk:
+    name: Verify signed APKs on OpenWrt 25.12 (${{ matrix.arch }})
+    needs: build
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x86_64
+            platform: linux/amd64
+            rootfs_url: https://downloads.openwrt.org/releases/25.12.5/targets/x86/64/openwrt-25.12.5-x86-64-rootfs.tar.gz
+          - arch: aarch64
+            platform: linux/arm64
+            rootfs_url: https://downloads.openwrt.org/releases/25.12.5/targets/armsr/armv8/openwrt-25.12.5-armsr-armv8-rootfs.tar.gz
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: packages-apk
+          path: packages
+
+      - uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm64
+
+      - name: Download official OpenWrt rootfs
+        env:
+          ROOTFS_URL: ${{ matrix.rootfs_url }}
+        run: |
+          curl --http1.1 -fL --retry 5 --retry-all-errors \
+            --connect-timeout 30 --max-time 600 \
+            "${ROOTFS_URL}" -o "${RUNNER_TEMP}/openwrt-rootfs.tar.gz"
+
+      - name: Test local install, rejection cases and signed feed
+        run: |
+          sh .github/scripts/verify_apk_rootfs.sh \
+            packages "${RUNNER_TEMP}/openwrt-rootfs.tar.gz" "${{ matrix.platform }}"
 
   sync-docs:
     name: Sync release docs
@@ -381,3 +529,11 @@ jobs:
           git add Makefile compat/luci-app-nuxlab/Makefile README.md README_ZH.md RELEASE.md RELEASE_ZH.md
           git commit -m "docs: sync release notes for ${GITHUB_REF_NAME}"
           git push origin "HEAD:${DOCS_BRANCH}"
+
+  publish-apk-feed:
+    name: Publish the signed APK feed
+    needs: release
+    uses: ./.github/workflows/publish_updates.yml
+    with:
+      tag: ${{ github.ref_name }}
+    secrets: inherit

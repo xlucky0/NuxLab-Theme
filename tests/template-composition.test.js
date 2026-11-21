@@ -26,6 +26,7 @@ test('application and login compose the same head with their own resource bounda
 			assert.ok(html.indexOf('/css/cascade.css') < html.indexOf('/extra.css'));
 			assert.ok(html.indexOf('/extra.css') < html.indexOf('.fixture { color: red; }'));
 			assert.match(html, /var luciLocation =/);
+			assert.match(html, /L\.require\('nuxlab-fx'\)/);
 			if (entry === 'application') {
 				assert.match(html, /name="nuxlab-menu-icons" content="default.svg status.svg"/);
 				assert.match(html, /\/luci\.js\?v=test-build/);
@@ -34,7 +35,7 @@ test('application and login compose the same head with their own resource bounda
 				assert.match(html, /id="nuxlab-appearance" hidden/);
 				assert.match(html, /L\.require\('nuxlab-appearance'\)/);
 			} else {
-				assert.doesNotMatch(html, /nuxlab-menu-icons|nuxlab-appearance|\/luci\.js|\/cbi\.js|L\.require/);
+				assert.doesNotMatch(html, /nuxlab-menu-icons|nuxlab-appearance|\/luci\.js|\/cbi\.js|L\.require\('(?!nuxlab-fx')/);
 			}
 		}
 		assert.equal((renderer.render('headers-twice').html.match(/<!DOCTYPE html>/g) || []).length, 1);

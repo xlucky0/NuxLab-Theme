@@ -32,7 +32,11 @@ class UpdateSiteTests(unittest.TestCase):
         release = {'tag_name': tag, 'draft': False, 'prerelease': False,
                    'html_url': f'https://github.com/xlucky0/NuxLab-Theme/releases/tag/{tag}',
                    'published_at': '2026-10-21T01:00:00Z', 'body': '## 更新\n- 修复布局。', 'assets': []}
-        for name in [f'luci-theme-nuxlab-{metadata["apk_version"]}-r{metadata["package_release"]}.apk']:
+        for name in [
+            f'luci-theme-nuxlab-{metadata["apk_version"]}-r{metadata["package_release"]}.apk',
+            f'luci-app-nuxlab-{metadata["apk_version"]}-r{metadata["package_release"]}.apk',
+            'packages.adb', 'nuxlab-apk.pem', 'install-key.sh',
+        ]:
             content = ('package bytes for ' + name).encode()
             (self.packages / name).write_bytes(content)
             release['assets'].append({'name': name, 'size': len(content),
@@ -62,6 +66,18 @@ class UpdateSiteTests(unittest.TestCase):
         self.assertEqual(entry['apk_sha256'], hashlib.sha256((self.packages / names[0]).read_bytes()).hexdigest())
         self.assertEqual(entry['apk_size'], (self.packages / names[0]).stat().st_size)
         self.assertNotIn('ipk', entry)
+
+    def test_site_contains_signed_packages_index_key_and_all_apks_in_feed(self):
+        names = self.add_language('zh-cn') + self.add_language('de')
+        self.generate()
+        feed = self.output / 'feed'
+        self.assertTrue((feed / 'packages.adb').is_file())
+        self.assertTrue((feed / 'nuxlab-apk.pem').is_file())
+        self.assertTrue((feed / 'install-key.sh').is_file())
+        self.assertTrue((feed / names[0]).is_file())
+        self.assertTrue((feed / names[1]).is_file())
+        self.assertTrue((feed / self.release['assets'][0]['name']).is_file())
+        self.assertTrue((feed / self.release['assets'][1]['name']).is_file())
 
     def test_missing_corrupt_or_wrong_version_language_packages_block_publication(self):
         for problem in ['missing-file', 'corrupt', 'wrong-version', 'duplicate']:

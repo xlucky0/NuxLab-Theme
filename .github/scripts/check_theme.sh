@@ -25,6 +25,12 @@ done
 
 lessc less/cascade.less "$tmpdir/cascade.css"
 cmp htdocs/luci-static/nuxlab/css/cascade.css "$tmpdir/cascade.css"
+lessc less/fx.less "$tmpdir/fx.css"
+fx_bytes=$(( $(wc -c < "$tmpdir/fx.css") + $(wc -c < htdocs/luci-static/resources/nuxlab-fx.js) ))
+if [ "$fx_bytes" -gt 61440 ]; then
+	echo "FX CSS and JavaScript exceed the 60 KiB budget: ${fx_bytes} bytes." >&2
+	exit 1
+fi
+echo "FX CSS and JavaScript: ${fx_bytes} bytes (60 KiB maximum)."
 
-UCODE_BIN="$ucode_bin" node --test tests/*.test.js
-python3 -m unittest discover -s tests -p 'test_*.py'
+UCODE_BIN="$ucode_bin" npm test

@@ -2,6 +2,7 @@
 <script>
 	// thanks for Jo-Philipp Wich <jow@openwrt.org>
 	var luciLocation = {{ ctx.path }};
+	L.require('nuxlab-fx');
 </script>
 {% if (!is_login): %}
 <script type="text/javascript">L.require('menu-nuxlab')</script>

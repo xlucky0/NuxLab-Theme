@@ -146,7 +146,7 @@ function lstat(path) {
 		['status.svg', 'custom-menu.svg']);
 	assert.deepEqual(catalog({ files: null }), []);
 });
-const configResult = '{mode, primary, dark_primary, blur_radius, blur_radius_dark, blur_opacity, blur_opacity_dark, bar_color}';
+const configResult = '{mode, primary, dark_primary, blur_radius, blur_radius_dark, blur_opacity, blur_opacity_dark, bar_color, fx_mode, preset, rgb_mode, rgb_speed}';
 
 test('shared head uses safe defaults for missing and invalid settings', () => {
 	const empty = runUcodeSnippet('ucode/template/themes/nuxlab/head.ut', 'function validColor', '\n-%}', configSetup, configResult);
@@ -158,11 +158,23 @@ test('shared head uses safe defaults for missing and invalid settings', () => {
 	assert.equal(empty.blur_opacity, '0.5');
 	assert.equal(empty.blur_opacity_dark, '0.5');
 	assert.equal(empty.bar_color, '#4f46e5');
+	assert.deepEqual(
+		{ fx_mode: empty.fx_mode, preset: empty.preset, rgb_mode: empty.rgb_mode, rgb_speed: empty.rgb_speed },
+		{ fx_mode: 'full', preset: 'aurora', rgb_mode: '1', rgb_speed: 'normal' }
+	);
 	assert.deepEqual(runUcodeSnippet('ucode/template/themes/nuxlab/head.ut', 'function validColor', '\n-%}', configSetup, configResult, {}, false), empty);
 	const invalid = runUcodeSnippet('ucode/template/themes/nuxlab/head.ut', 'function validColor', '\n-%}', configSetup, configResult, {
-		primary: 'red;}', blur: '-1', transparency: '2', mode: 'unknown'
+		primary: 'red;}', blur: '-1', transparency: '2', mode: 'unknown',
+		fx_mode: 'motion', preset: 'unknown', rgb_mode: 'yes', rgb_speed: 'rapid'
 	});
 	assert.deepEqual(invalid, empty);
+	const visual = runUcodeSnippet('ucode/template/themes/nuxlab/head.ut', 'function validColor', '\n-%}', configSetup, configResult, {
+		fx_mode: 'saver', preset: 'cyber', rgb_mode: '0', rgb_speed: 'fast'
+	});
+	assert.deepEqual(
+		{ fx_mode: visual.fx_mode, preset: visual.preset, rgb_mode: visual.rgb_mode, rgb_speed: visual.rgb_speed },
+		{ fx_mode: 'saver', preset: 'cyber', rgb_mode: '0', rgb_speed: 'fast' }
+	);
 	const dark = runUcodeSnippet('ucode/template/themes/nuxlab/head.ut', 'function validColor', '\n-%}', configSetup, configResult, {
 		primary: '#123456', dark_primary: '#abcdef', blur: '0', transparency: '0.7', mode: 'dark'
 	});

@@ -9,4 +9,8 @@ config global
 	option transparency '0.5'
 	option transparency_dark '0.5'
 	option mode 'normal'
+	option fx_mode 'full'
+	option rgb_mode '1'
+	option rgb_speed 'normal'
+	option preset 'aurora'
 	option online_wallpaper 'none'

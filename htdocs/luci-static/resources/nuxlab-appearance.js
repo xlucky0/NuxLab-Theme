@@ -15,6 +15,19 @@ return baseclass.extend({
 		this.mode = document.documentElement.dataset.nuxlabMode;
 		this.busy = false;
 		this.preference = window.matchMedia('(prefers-color-scheme: dark)');
+		window.addEventListener('nuxlab-visual-settings-saved', function(event) {
+			var settings = event.detail || {};
+			var html = document.documentElement;
+			if ([ 'full', 'saver', 'off' ].includes(settings.fx_mode))
+				html.dataset.nuxlabFx = settings.fx_mode;
+			if ([ 'aurora', 'cyber', 'mono' ].includes(settings.preset))
+				html.dataset.nuxlabPreset = settings.preset;
+			if ([ '0', '1' ].includes(settings.rgb_mode))
+				html.dataset.nuxlabRgb = settings.rgb_mode;
+			if ([ 'off', 'slow', 'normal', 'fast' ].includes(settings.rgb_speed))
+				html.dataset.nuxlabRgbSpeed = settings.rgb_speed;
+			html.style.setProperty('--nuxlab-rgb-mode', html.dataset.nuxlabRgb || '1');
+		});
 		return Promise.all([ callGet(), callAccess('ubus', 'luci.nuxlab_appearance', 'set') ]).then(function(data) {
 			if (data[0].result !== 0 || !this.validMode(data[0].mode))
 				return;

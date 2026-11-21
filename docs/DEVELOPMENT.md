@@ -21,9 +21,55 @@ Firmware and GitHub Actions build scripts should stop cloning the old standalone
 
 The older `does not support ucode template precompilation` log line is LuCI's skip message, separate from the file conflict. This package disables precompilation and ships `.ut` source to avoid SDK/target ucode bytecode incompatibilities; other LuCI packages can retain precompilation.
 
-Release CI builds APK v3 packages with the OpenWrt 25.12.5 SDK and uploads the theme, migration and translation APKs to the GitHub Release for each version tag. OPKG/IPK packages are not published. Ucode templates ship as source to avoid tying packages to one runtime's bytecode format.
+Release CI builds signed APK v3 packages with the OpenWrt 25.12.5 SDK and uploads the theme, migration and translation APKs, signed `packages.adb`, `nuxlab-apk.pem`, and `install-key.sh` to each GitHub Release. The signed packages and index are also published under `/feed/` on GitHub Pages. The SDK's `apk adbsign` path rewrites an existing APK in place and has been observed to corrupt packages, so CI signs packages at creation time with the verified `apk mkpkg --sign-key` option instead; the index uses `apk mkndx --sign-key`. The public/private pair must match. OPKG/IPK packages and usign signing are not currently published. Ucode templates ship as source to avoid tying packages to one runtime's bytecode format.
 
 Translations use `PKG_PO_VERSION` to follow the theme release, including `-r<revision>` for APK. CI reads each translation APK's internal package metadata and blocks artifact upload and publication if the version is wrong.
+
+### Release signing
+
+Create a P-256 key pair on a trusted maintainer machine:
+
+```sh
+openssl ecparam -name prime256v1 -genkey -noout -out key.pem
+openssl ec -in key.pem -pubout -out pub.pem
+```
+
+Save the complete PEM contents as Actions secrets `OPENWRT_PRIV_KEY` and `OPENWRT_PUB_KEY` at **Settings → Secrets and variables → Actions**. Never commit, print, or attach the private key. CI uses a restrictive umask, deletes temporary key files, and checks that the public and private keys match before signing. Because the SDK's safe package-creation signing is used, trusted package build scripts in the tagged release run in the same job as the signing key; protect release-tag creation and review release code before tagging. Keep the public-key SHA256 fingerprint in the release notes; the released `install-key.sh` verifies that fingerprint before installing `/etc/apk/keys/nuxlab-apk.pem`.
+
+Router setup after comparing the fingerprint with the release notes:
+
+```sh
+wget -qO /tmp/install-key.sh https://github.com/xlucky0/NuxLab-Theme/releases/latest/download/install-key.sh && sh /tmp/install-key.sh <SHA256-from-release-notes>
+```
+
+Install a local signed package, or use the signed static feed:
+
+```sh
+apk add ./luci-theme-nuxlab-*.apk
+printf '%s\n' 'https://xlucky0.github.io/NuxLab-Theme/feed' \
+  > /etc/apk/repositories.d/customfeeds.list
+apk update && apk add luci-theme-nuxlab
+```
+
+For legacy-package migration, install both signed packages from the feed after configuring the key:
+
+```sh
+apk update && apk add luci-theme-nuxlab luci-app-nuxlab
+```
+
+The Release workflow verifies local and feed installation, rejection without a key and with a different key, and the `noarch` package metadata on official OpenWrt 25.12.5 x86_64 and aarch64 root filesystems. It does not automate LuCI's **System → Software → Upload Package** dialog; verify that interaction manually on an OpenWrt 25.12 device after installing the key. If the private key is lost or exposed, rotate it and have users install the replacement public key before updating. An APK P-256 key cannot be used with `usign`; a future IPK workflow would require a separately generated usign key and secrets, and is currently disabled/not implemented.
+
+Visual settings are stored in UCI: `fx_mode` accepts `full`, `saver` or `off`; `rgb_mode` accepts `0` or `1`; `rgb_speed` accepts `off`, `slow`, `normal` or `fast` (30/14/6-second hue cycles for slow/normal/fast); `preset` accepts `aurora`, `cyber` or `mono`. For example:
+
+```sh
+uci set nuxlab.@global[0].fx_mode='saver'
+uci set nuxlab.@global[0].rgb_mode='1'
+uci set nuxlab.@global[0].rgb_speed='fast'
+uci set nuxlab.@global[0].preset='aurora'
+uci commit nuxlab
+```
+
+Reduced-motion preference disables FX; low-memory, low-core or slow-frame devices fall back to saver. Browser profiling and LuCI upload are hardware/browser dependent and are not represented as automated CI results.
 
 ## Source map
 
@@ -44,11 +90,12 @@ Translations use `PKG_PO_VERSION` to follow the theme release, including `-r<rev
 
 ## Styles
 
-Edit LESS sources, then regenerate the committed stylesheet with LESS 4.1.3:
+Edit LESS sources, then regenerate the committed stylesheet:
 
 ```sh
-npm install --global less@4.1.3
-lessc less/cascade.less htdocs/luci-static/nuxlab/css/cascade.css
+npm ci
+npm run build:css
+npm test
 ```
 
 Light and dark modes share this one stylesheet. Each `@theme-palette` row in `theme.less` defines `role: light, dark;`; one value means both modes share it. Use semantic tokens for text, surfaces, borders and states. Legacy variable aliases exist for LuCI compatibility.

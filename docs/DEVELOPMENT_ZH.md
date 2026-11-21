@@ -21,9 +21,55 @@ make package/luci-theme-nuxlab/compile V=s
 
 旧构建日志中的 `does not support ucode template precompilation` 是 LuCI 的跳过提示，不是上述文件冲突的原因。本包关闭模板预编译并保留 `.ut` 源码，避免 SDK 与目标设备的 ucode 字节码格式不一致；无需关闭其他 LuCI 包的预编译。
 
-发行 CI 使用 OpenWrt 25.12.5 SDK 构建 APK v3，并在每个版本标签对应的 GitHub Release 上传主题、迁移及翻译 APK。不再发布 OPKG/IPK 包。Ucode 模板保留源码，避免绑定某个运行时的字节码格式。
+发行 CI 使用 OpenWrt 25.12.5 SDK 构建已签名 APK v3，并在每个版本标签对应的 GitHub Release 上传主题、迁移及翻译 APK、签名的 `packages.adb`、`nuxlab-apk.pem` 和 `install-key.sh`。已签名包及索引也发布在 GitHub Pages 的 `/feed/`。SDK 的 `apk adbsign` 会原位重写 APK，实测会损坏包，因此 CI 在打包时使用已验证的 `apk mkpkg --sign-key` 签名；索引通过 `apk mkndx --sign-key` 签名。发布前会验证公私钥匹配。目前不发布 OPKG/IPK，也未启用 usign 签名。Ucode 模板保留源码，避免绑定某个运行时的字节码格式。
 
 语言包通过 `PKG_PO_VERSION` 跟随主题发行版本，APK 包含 `-r<修订号>`。发布前会逐个读取语言 APK 内部元数据，版本不符时阻止上传和发布。
+
+### 发行签名
+
+在可信维护者设备上生成 P-256 密钥对：
+
+```sh
+openssl ecparam -name prime256v1 -genkey -noout -out key.pem
+openssl ec -in key.pem -pubout -out pub.pem
+```
+
+在仓库 **Settings → Secrets and variables → Actions** 中，将完整 PEM 内容保存为 `OPENWRT_PRIV_KEY` 和 `OPENWRT_PUB_KEY` Actions Secret。不得提交、打印或发布私钥。CI 使用严格 umask，使用后删除临时密钥文件，并在签名之前核验公私钥匹配。由于采用 SDK 安全的打包时签名方式，带标签版本中的可信软件包构建脚本会与签名密钥处于同一个工作流任务；应限制发行标签创建权限，并在打标签前审查发行代码。发行说明会附带公钥 SHA256 指纹；`install-key.sh` 会先核验指纹，再安装到 `/etc/apk/keys/nuxlab-apk.pem`。
+
+核对发行说明的指纹后，在路由器上运行：
+
+```sh
+wget -qO /tmp/install-key.sh https://github.com/xlucky0/NuxLab-Theme/releases/latest/download/install-key.sh && sh /tmp/install-key.sh <发行说明中的SHA256>
+```
+
+安装本地签名包，或使用已签名的软件源：
+
+```sh
+apk add ./luci-theme-nuxlab-*.apk
+printf '%s\n' 'https://xlucky0.github.io/NuxLab-Theme/feed' \
+  > /etc/apk/repositories.d/customfeeds.list
+apk update && apk add luci-theme-nuxlab
+```
+
+如需迁移旧插件，配置密钥后可从软件源同时安装两个签名包：
+
+```sh
+apk update && apk add luci-theme-nuxlab luci-app-nuxlab
+```
+
+发行工作流会在官方 OpenWrt 25.12.5 x86_64 和 aarch64 根文件系统验证本地安装、软件源安装、缺少公钥和错误公钥时的拒绝行为，并验证 APK 元数据为 `noarch`。CI 不自动操作 LuCI **系统 → 软件 → 上传软件包** 对话框；安装公钥后需在 OpenWrt 25.12 设备上手动验证。若私钥丢失或泄露，必须轮换密钥，并让用户先安装新公钥再更新。APK P-256 密钥不能用于 `usign`；未来若启用 IPK，必须另行生成 usign 密钥并配置独立 Secret，目前该功能未实现。
+
+视觉设置保存在 UCI：`fx_mode` 为 `full`、`saver` 或 `off`；`rgb_mode` 为 `0` 或 `1`；`rgb_speed` 为 `off`、`slow`、`normal` 或 `fast`（slow/normal/fast 色相周期分别为 30/14/6 秒）；`preset` 为 `aurora`、`cyber` 或 `mono`。例如：
+
+```sh
+uci set nuxlab.@global[0].fx_mode='saver'
+uci set nuxlab.@global[0].rgb_mode='1'
+uci set nuxlab.@global[0].rgb_speed='fast'
+uci set nuxlab.@global[0].preset='aurora'
+uci commit nuxlab
+```
+
+系统减少动态效果偏好会关闭动效；低内存、低核心数或帧时间过长的设备会切换到 saver。浏览器性能分析与 LuCI 上传依赖具体设备和浏览器，不能视为 CI 已完成的测试。
 
 ## 目录
 
@@ -44,11 +90,12 @@ make package/luci-theme-nuxlab/compile V=s
 
 ## 样式
 
-修改 LESS 源码后，使用 LESS 4.1.3 重新生成并一同提交 CSS：
+修改 LESS 源码后，重新生成并一同提交 CSS：
 
 ```sh
-npm install --global less@4.1.3
-lessc less/cascade.less htdocs/luci-static/nuxlab/css/cascade.css
+npm ci
+npm run build:css
+npm test
 ```
 
 亮暗色共用一份样式。`theme.less` 中 `@theme-palette` 每行以 `角色: 亮色, 暗色;` 定义颜色；单值表示两种模式共用。文字、背景、边框和状态使用各自语义 token；旧变量别名仅用于 LuCI 兼容。

@@ -14,7 +14,12 @@ from urllib.request import Request, urlopen
 
 BRANCH = 'updates'
 MARKER = b'nuxlab-update-feed-v1\n'
-FILES = {'.nojekyll', '404.html', '_headers', 'updates/stable.json'}
+BASE_FILES = {'.nojekyll', '404.html', '_headers', 'updates/stable.json'}
+FEED_FILES = {'feed/packages.adb', 'feed/nuxlab-apk.pem', 'feed/install-key.sh'}
+PACKAGE_PATTERN = re.compile(
+    r'feed/luci-(?:theme-nuxlab|app-nuxlab|i18n-nuxlab-[a-z]{2,3}(?:-[a-z0-9]{2,8})?)-'
+    r'[A-Za-z0-9_.+-]+\.apk'
+)
 
 
 def git(repository, *arguments, env=None, data=None, check=True):
@@ -24,8 +29,18 @@ def git(repository, *arguments, env=None, data=None, check=True):
 
 def publish(site, repository, remote='origin'):
     paths = {path.relative_to(site).as_posix(): path for path in site.rglob('*') if path.is_file()}
-    if set(paths) != FILES or any(path.is_symlink() for path in site.rglob('*')):
-        raise ValueError('The update artifact must contain only the generated feed files.')
+    names = set(paths)
+    package_files = {
+        name for name in names
+        if name.startswith('feed/') and name.endswith('.apk')
+    }
+    if (not BASE_FILES.issubset(names) or not FEED_FILES.issubset(names) or
+            names != BASE_FILES | FEED_FILES | package_files or not package_files or
+            any(not PACKAGE_PATTERN.fullmatch(name) for name in package_files) or
+            not any(name.startswith('feed/luci-theme-nuxlab-') for name in package_files) or
+            not any(name.startswith('feed/luci-app-nuxlab-') for name in package_files) or
+            any(path.is_symlink() for path in site.rglob('*'))):
+        raise ValueError('The update artifact must contain only generated update and signed APK feed files.')
     manifest = json.loads(paths['updates/stable.json'].read_text())
     tag = manifest.get('tag', '')
     if manifest.get('schema') != 1 or not re.fullmatch(r'v?[0-9]+(?:\.[0-9]+){1,3}', tag):

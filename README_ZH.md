@@ -44,15 +44,53 @@ v3.0.0 及更早版本用户需先手动安装一次 v3.1.3，之后即可使用
 
 ## 安装
 
-**3.0 已将主题和配置功能合并到 `luci-theme-nuxlab`，全新安装只需这一个包。** 前往 [Releases](https://github.com/xlucky0/NuxLab-Theme/releases) 下载 APK v3 格式安装包。发行版仅支持使用 APK v3（`apk-tools 3.x`）的固件，不支持 OPKG/IPK 固件。
+**3.0 已将主题和配置功能合并到 `luci-theme-nuxlab`，全新安装只需这一个包。** 前往 [Releases](https://github.com/xlucky0/NuxLab-Theme/releases) 下载 APK v3 格式安装包。发行版仅支持使用 APK v3（`apk-tools 3.x`）的固件，不支持 OPKG/IPK 固件。安装包和软件源索引均已签名。
 
 | 包管理器 | 包格式 | 安装命令 |
 | --- | --- | --- |
-| APK v3（`apk-tools 3.x`） | `.apk` | `apk add --allow-untrusted ./luci-theme-nuxlab-*.apk` |
+| APK v3（`apk-tools 3.x`） | `.apk` | `apk add ./luci-theme-nuxlab-*.apk` |
 
-安装前执行 `apk update`。APK v2 无法读取本项目的 APK 包。
+安装前请将 `nuxlab-apk.pem` 的 SHA256 指纹与发行说明中的值核对，再安装公钥：
+
+```sh
+wget -qO /tmp/install-key.sh https://github.com/xlucky0/NuxLab-Theme/releases/latest/download/install-key.sh && sh /tmp/install-key.sh <发行说明中的SHA256>
+```
+
+脚本会校验下载公钥的指纹，通过后才将其放入 `/etc/apk/keys/`。随后可不使用 `--allow-untrusted` 安装本地包：
+
+```sh
+apk add ./luci-theme-nuxlab-*.apk
+```
+
+也可以添加已签名的软件源并安装：
+
+```sh
+printf '%s\n' 'https://xlucky0.github.io/NuxLab-Theme/feed' \
+  > /etc/apk/repositories.d/customfeeds.list
+apk update
+apk add luci-theme-nuxlab
+```
+
+从旧版独立 `luci-app-nuxlab` 升级时，先安装同次发行中的 `luci-app-nuxlab` 迁移包，再单独安装主题。APK v2 无法读取本项目的 APK 包。
 
 需要翻译时，安装同次发行的 `luci-i18n-nuxlab-<语言>.apk` 语言包。
+
+**密钥安全：**妥善保管 `OPENWRT_PRIV_KEY`。如果密钥丢失或泄露，必须轮换签名密钥，并让用户先安装新公钥再更新。
+
+### 发行签名设置（维护者）
+
+在本地生成 P-256 密钥对：
+
+```sh
+openssl ecparam -name prime256v1 -genkey -noout -out key.pem
+openssl ec -in key.pem -pubout -out pub.pem
+```
+
+在仓库 **Settings → Secrets and variables → Actions** 中，将完整 PEM 内容分别保存为 `OPENWRT_PRIV_KEY` 和 `OPENWRT_PUB_KEY` Actions Secret。严禁提交密钥。发行 CI 会验证密钥匹配，在 OpenWrt 25.12.5 SDK 打包时签名所有 APK，并签名 `packages.adb`。CI 会在官方 OpenWrt 25.12.5 x86_64 与 aarch64 根文件系统中安装同一组 noarch 包，并确认缺少公钥或使用错误公钥时安装会被拒绝。
+
+在 OpenWrt 安装公钥后，可通过 **系统 → 软件 → 上传软件包** 手动测试 LuCI 上传签名 `.apk`，不要允许不受信任的包。CI 使用 `apk add` 直接测试安装；LuCI 上传交互需要在设备上手动验证。
+
+APK 签名密钥不是 OPKG/usign 密钥。本项目目前仅发布 APK v3，尚未启用 IPK 签名和 OpenWrt 24.10 构建。
 
 在 **系统 → 系统 → 语言和界面 → 主题** 中选择 **NuxLab**。
 
@@ -63,12 +101,12 @@ v3.0.0 及更早版本用户需先手动安装一次 v3.1.3，之后即可使用
 
 3.0 的设置页面、配色、背景和 Logo 管理都在主题包内。发行附件中的 `luci-app-nuxlab` 是**沿用旧包名的空迁移包**，用于保留旧配置并将文件交给主题，不是另一个配置插件。
 
-1. 从**主题仓库同一次发行**中下载 APK v3 格式的 `luci-app-nuxlab` 迁移包和 `luci-theme-nuxlab` 主题包。
+1. 按照上文安装发行版公钥，再从**主题仓库同一次发行**中下载 APK v3 格式的 `luci-app-nuxlab` 迁移包和 `luci-theme-nuxlab` 主题包。
 2. 将两个文件放到兼容 APK v3 的固件同一目录，在该目录打开终端。**无需先卸载旧插件**；第一条成功后，再执行第二条。
 
 ```sh
-apk add --allow-untrusted ./luci-app-nuxlab-*.apk
-apk add --allow-untrusted ./luci-theme-nuxlab-*.apk
+apk add ./luci-app-nuxlab-*.apk
+apk add ./luci-theme-nuxlab-*.apk
 ```
 
 第一步将旧插件升级为空迁移包，第二步安装包含配置功能的新主题，并恢复已有设置。之后继续在 **系统 → NuxLab 主题设置** 中配置即可。
@@ -77,7 +115,17 @@ apk add --allow-untrusted ./luci-theme-nuxlab-*.apk
 
 ## 自定义
 
-打开 **系统 → NuxLab 主题设置**，调整登录布局、配色、毛玻璃、壁纸和图标。页面右上角可切换**亮色模式、暗色模式、跟随系统**，也会应用于登录页。
+打开 **系统 → NuxLab 主题设置**，调整登录布局、配色、毛玻璃、壁纸和图标。可选择 **Aurora、Cyber RGB、Mono Glass** 外观预设，并通过 `fx_mode=full|saver|off` 控制动效、通过 `rgb_mode=0|1` 控制 RGB、通过 `rgb_speed=off|slow|normal|fast` 控制色相速度（slow/normal/fast 分别为 30/14/6 秒周期）。例如：
+
+```sh
+uci set nuxlab.@global[0].fx_mode='full'
+uci set nuxlab.@global[0].rgb_mode='1'
+uci set nuxlab.@global[0].rgb_speed='fast'
+uci set nuxlab.@global[0].preset='aurora'
+uci commit nuxlab
+```
+
+将 `fx_mode` 设为 `saver` 可使用更轻、更慢的背景动效，设为 `off` 可关闭效果。系统减少动态效果偏好会自动关闭动效；低内存、低核心数或帧时间过长的设备会自动切换到 saver。页面右上角可切换**亮色模式、暗色模式、跟随系统**，也会应用于登录页。
 
 背景支持本地图片、视频，以及 Bing、Unsplash、Wallhaven 在线壁纸；Unsplash 需填写 API Access Key。网站图标和登录 Logo 支持 PNG，每边 16–1024 像素、最大 1 MiB，网站图标需为正方形。
 

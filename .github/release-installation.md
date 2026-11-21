@@ -4,6 +4,30 @@ This release publishes APK v3 packages only. Install them only on firmware using
 
 本次发行仅提供 APK v3 安装包。仅适用于使用 APK v3（`apk-tools 3.x`）的固件，不支持 OPKG/IPK 固件。
 
+## Install signed packages
+
+Compare the SHA256 fingerprint in the release notes, then install the public key on the router:
+
+```sh
+wget -qO /tmp/install-key.sh https://github.com/xlucky0/NuxLab-Theme/releases/latest/download/install-key.sh &&
+  sh /tmp/install-key.sh <SHA256-from-this-release>
+apk add ./luci-theme-nuxlab-*.apk
+```
+
+For feed installation, add `https://xlucky0.github.io/NuxLab-Theme/feed` to `/etc/apk/repositories.d/customfeeds.list`, then run `apk update && apk add luci-theme-nuxlab`. Do not use `--allow-untrusted`. If the signing private key is lost or exposed, it must be rotated and routers must install the replacement public key.
+
+## 已签名安装包
+
+请先核对发行说明中的 SHA256 指纹，再在路由器上安装公钥：
+
+```sh
+wget -qO /tmp/install-key.sh https://github.com/xlucky0/NuxLab-Theme/releases/latest/download/install-key.sh &&
+  sh /tmp/install-key.sh <本次发行的SHA256>
+apk add ./luci-theme-nuxlab-*.apk
+```
+
+通过软件源安装时，将 `https://xlucky0.github.io/NuxLab-Theme/feed` 添加到 `/etc/apk/repositories.d/customfeeds.list`，然后执行 `apk update && apk add luci-theme-nuxlab`。不要使用 `--allow-untrusted`。如果签名私钥丢失或泄露，必须轮换密钥并让路由器安装新公钥。
+
 ## 修复与改进
 
 - 修复提示条遮挡下拉菜单、表格下拉选项显示不完整的问题（#740、#741）。

@@ -72,6 +72,10 @@ blur_dark 10
 transparency 0.5
 transparency_dark 0.5
 mode normal
+fx_mode full
+rgb_mode 1
+rgb_speed normal
+preset aurora
 online_wallpaper none
 DEFAULTS
 uci commit nuxlab

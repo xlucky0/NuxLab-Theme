@@ -67,6 +67,10 @@ if op != 'get': p.write_text(json.dumps(state))
         self.assertEqual(state['online_wallpaper'], 'none')
         self.assertEqual(state['blur'], '10')
         self.assertEqual(state['transparency'], '0.5')
+        self.assertEqual(state['fx_mode'], 'full')
+        self.assertEqual(state['rgb_mode'], '1')
+        self.assertEqual(state['rgb_speed'], 'normal')
+        self.assertEqual(state['preset'], 'aurora')
         self.assertEqual(state['dark_primary_mode'], 'auto')
         self.assertEqual(state['dark_glass_mode'], 'inherit')
         self.assertEqual(self.initialize(), state)
@@ -95,6 +99,16 @@ if op != 'get': p.write_text(json.dumps(state))
         for key, value in original.items():
             self.assertEqual(state[key], value)
         self.assertEqual(self.initialize(), state)
+
+    def test_existing_visual_preferences_are_preserved_and_missing_values_default(self):
+        state = self.initialize(dict(fx_mode='saver', rgb_mode='0', rgb_speed='fast', preset='mono'))
+        self.assertEqual({key: state[key] for key in ('fx_mode', 'rgb_mode', 'rgb_speed', 'preset')},
+                         {'fx_mode': 'saver', 'rgb_mode': '0', 'rgb_speed': 'fast', 'preset': 'mono'})
+        state = self.initialize(dict(fx_mode='off'))
+        self.assertEqual(state['fx_mode'], 'off')
+        self.assertEqual(state['rgb_mode'], '1')
+        self.assertEqual(state['rgb_speed'], 'normal')
+        self.assertEqual(state['preset'], 'aurora')
 
     def test_old_bing_switch_migrates_without_overwriting_current_source(self):
         for old, source in [('0', 'none'), ('1', 'bing')]:

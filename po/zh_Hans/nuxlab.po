@@ -553,3 +553,51 @@ msgstr "暂停背景视频"
 #: ucode/template/themes/nuxlab/header.ut
 msgid "Skip to content"
 msgstr "跳至主要内容"
+
+msgid "Visual effects"
+msgstr "视觉效果"
+
+msgid "Choose the motion and visual detail level for NuxLab backgrounds and cards."
+msgstr "选择 NuxLab 背景和卡片的动态与视觉细节级别。"
+
+msgid "Full"
+msgstr "完整"
+
+msgid "Power saver"
+msgstr "省电"
+
+msgid "Off"
+msgstr "关闭"
+
+msgid "RGB mode"
+msgstr "RGB 模式"
+
+msgid "On"
+msgstr "开启"
+
+msgid "RGB speed"
+msgstr "RGB 速度"
+
+msgid "Hue cycle duration: 30, 14, or 6 seconds."
+msgstr "色相循环时长：30、14 或 6 秒。"
+
+msgid "Slow (30s)"
+msgstr "慢速（30 秒）"
+
+msgid "Normal (14s)"
+msgstr "正常（14 秒）"
+
+msgid "Fast (6s)"
+msgstr "快速（6 秒）"
+
+msgid "Color preset"
+msgstr "配色预设"
+
+msgid "Aurora"
+msgstr "极光"
+
+msgid "Cyber RGB"
+msgstr "赛博 RGB"
+
+msgid "Mono Glass"
+msgstr "单色玻璃"

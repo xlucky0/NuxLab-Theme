@@ -52,6 +52,9 @@ def generate(release, packages, repository, output):
     names = {
         'apk': f'luci-theme-nuxlab-{metadata["apk_version"]}-r{metadata["package_release"]}.apk',
     }
+    migration_package = (
+        f'luci-app-nuxlab-{metadata["apk_version"]}-r{metadata["package_release"]}.apk'
+    )
     assets = release.get('assets', [])
     def verified_asset(name, maximum=8388608):
         matching = [asset for asset in assets if asset.get('name') == name]
@@ -95,9 +98,37 @@ def generate(release, packages, repository, output):
             entry[kind], entry[kind + '_sha256'], entry[kind + '_size'] = verified_asset(name, 1048576)
         manifest['translations'][language] = entry
 
+    expected_packages = {names['apk'], migration_package}
+    expected_packages.update(
+        entry['apk'] for entry in manifest.get('translations', {}).values()
+    )
+    published_packages = {
+        asset.get('name') for asset in assets
+        if isinstance(asset.get('name'), str) and
+        asset['name'].startswith(('luci-theme-nuxlab-', 'luci-app-nuxlab-', 'luci-i18n-nuxlab-')) and
+        asset['name'].endswith('.apk')
+    }
+    if published_packages != expected_packages:
+        raise ValueError('The release APK assets do not match the expected theme, migration and translation packages.')
+
+    metadata_files = [('packages.adb', 8388608),
+                      ('nuxlab-apk.pem', 65536),
+                      ('install-key.sh', 65536)]
+    for name in sorted(expected_packages):
+        verified_asset(name, 8388608)
+    for name, maximum in metadata_files:
+        verified_asset(name, maximum)
+
     output.mkdir(parents=True, exist_ok=True)
     (output / 'updates').mkdir(exist_ok=True)
     (output / 'updates/stable.json').write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + '\n')
+    feed = output / 'feed'
+    feed.mkdir(exist_ok=True)
+    for name in sorted(expected_packages):
+        (feed / name).write_bytes((packages / name).read_bytes())
+    for name, _ in metadata_files:
+        (feed / name).write_bytes((packages / name).read_bytes())
+
     (output / '.nojekyll').touch()
     (output / '404.html').write_text('<!doctype html><title>Not found</title><p>Not found.</p>\n')
     (output / '_headers').write_text(

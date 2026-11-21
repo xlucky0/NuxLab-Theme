@@ -551,3 +551,51 @@ msgstr "Tạm dừng video nền"
 #: ucode/template/themes/nuxlab/header.ut
 msgid "Skip to content"
 msgstr "Chuyển đến nội dung"
+
+msgid "Visual effects"
+msgstr "Hiệu ứng hình ảnh"
+
+msgid "Choose the motion and visual detail level for NuxLab backgrounds and cards."
+msgstr "Chọn mức chuyển động và chi tiết hình ảnh cho nền và thẻ NuxLab."
+
+msgid "Full"
+msgstr "Đầy đủ"
+
+msgid "Power saver"
+msgstr "Tiết kiệm năng lượng"
+
+msgid "Off"
+msgstr "Tắt"
+
+msgid "RGB mode"
+msgstr "Chế độ RGB"
+
+msgid "On"
+msgstr "Bật"
+
+msgid "RGB speed"
+msgstr "Tốc độ RGB"
+
+msgid "Hue cycle duration: 30, 14, or 6 seconds."
+msgstr "Thời gian chu kỳ sắc độ: 30, 14 hoặc 6 giây."
+
+msgid "Slow (30s)"
+msgstr "Chậm (30 giây)"
+
+msgid "Normal (14s)"
+msgstr "Bình thường (14 giây)"
+
+msgid "Fast (6s)"
+msgstr "Nhanh (6 giây)"
+
+msgid "Color preset"
+msgstr "Bảng màu"
+
+msgid "Aurora"
+msgstr "Cực quang"
+
+msgid "Cyber RGB"
+msgstr "RGB Cyber"
+
+msgid "Mono Glass"
+msgstr "Kính đơn sắc"
